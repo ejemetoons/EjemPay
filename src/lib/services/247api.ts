@@ -111,6 +111,7 @@ export async function purchaseAirtime(params: {
   phone: string
   amount: string
   plan_type?: string
+  Ported_number?: boolean
   bypass?: boolean
   "request-id"?: string
 }): Promise<PurchaseResponse> {
@@ -128,6 +129,7 @@ export async function purchaseData(params: {
   network: number
   phone: string
   data_plan: number
+  Ported_number?: boolean
   bypass?: boolean
   "request-id"?: string
 }): Promise<PurchaseResponse> {

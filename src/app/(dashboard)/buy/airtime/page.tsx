@@ -11,7 +11,6 @@ import { formatCurrencyShort, isValidPhone } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { createClient } from "@/lib/supabase/client"
 import { Loader2, Phone } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -54,14 +53,23 @@ export default function BuyAirtimePage() {
 
         if (!networkObj) throw new Error("Network not found")
 
-        const res = await fetch("/api/proxy/airtime", {
+        const res = await fetch("/api/purchase", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            network: networkObj.id,
-            phone,
-            amount: String(amount),
-            "request-id": `EJP_AT_${Date.now()}`,
+            service: "airtime",
+            userPrice: price,
+            providerCost: apiCost,
+            beneficiary: phone,
+            apiParams: {
+              network: networkObj.id,
+              phone,
+              amount: String(amount),
+              plan_type: "VTU",
+              Ported_number: true,
+              "request-id": `EJP_AT_${Date.now()}`,
+            },
+            details: { phone, network: getNetworkName(network), amount: Number(amount) },
           }),
         })
 
@@ -69,18 +77,7 @@ export default function BuyAirtimePage() {
 
         if (data.status === "success") {
           addToast("success", `Airtime purchase successful: ${getNetworkName(network)} ${formatCurrencyShort(Number(amount))}`)
-          setBalance(balance - price)
-
-          const supabase = createClient()
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            type: "airtime",
-            amount: price,
-            fee: price - apiCost,
-            status: "success",
-            details: { phone, network: getNetworkName(network), amount: Number(amount) },
-            api_reference: data["request-id"],
-          })
+          setBalance(data.newBalance)
         } else {
           addToast("error", data.message || "Purchase failed")
         }
@@ -120,15 +117,33 @@ export default function BuyAirtimePage() {
             </motion.div>
           )}
 
-          <Input
-            label="Amount (₦)"
-            type="number"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            min="50"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount (₦)</label>
+            <div className="grid grid-cols-5 gap-2 mb-3">
+              {[50, 100, 200, 500, 1000].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setAmount(String(preset))}
+                  className={`p-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                    Number(amount) === preset
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
+                  }`}
+                >
+                  ₦{preset}
+                </button>
+              ))}
+            </div>
+            <Input
+              label=""
+              type="number"
+              placeholder="Or enter custom amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              min="50"
+            />
+          </div>
 
           {price > 0 && (
             <motion.div

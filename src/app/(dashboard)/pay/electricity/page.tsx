@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { createClient } from "@/lib/supabase/client"
 import { formatCurrencyShort } from "@/lib/utils"
 import { calculateServicePrice } from "@/lib/pricing"
 import { Loader2, Zap, CheckCircle, XCircle } from "lucide-react"
@@ -26,6 +25,8 @@ export default function ElectricityPage() {
   const [meterType, setMeterType] = useState<"prepaid" | "postpaid">("prepaid")
   const [meterNumber, setMeterNumber] = useState("")
   const [amount, setAmount] = useState("")
+  const [phone, setPhone] = useState("")
+  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingDiscos, setLoadingDiscos] = useState(true)
   const [validatingMeter, setValidatingMeter] = useState(false)
@@ -105,33 +106,32 @@ export default function ElectricityPage() {
 
       setLoading(true)
       try {
-        const purchaseRes = await fetch("/api/proxy/bill", {
+        const purchaseRes = await fetch("/api/purchase", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            disco: Number(selectedDisco),
-            meter_type: meterType,
-            meter_number: meterNumber,
-            amount: String(amount),
-            "request-id": `EJP_EL_${Date.now()}`,
+            service: "electricity",
+            userPrice: price,
+            providerCost: numAmount,
+            beneficiary: meterNumber,
+            apiParams: {
+              disco: Number(selectedDisco),
+              meter_type: meterType,
+              meter_number: meterNumber,
+              amount: String(amount),
+              phone: phone || undefined,
+              bypass: true,
+              "request-id": `EJP_EL_${Date.now()}`,
+            },
+            details: { disco: selectedDisco, meter_number: meterNumber, meter_type: meterType, amount: numAmount },
           }),
         })
 
         const data = await purchaseRes.json()
         if (data.status === "success") {
+          setToken(data.token || null)
           addToast("success", "Electricity payment successful!")
-          setBalance(balance - price)
-
-          const supabase = createClient()
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            type: "electricity",
-            amount: price,
-            fee: price - numAmount,
-            status: "success",
-            details: { disco: selectedDisco, meter_number: meterNumber, meter_type: meterType, amount: numAmount },
-            api_reference: data["request-id"],
-          })
+          setBalance(data.newBalance)
         } else {
           addToast("error", data.message || "Payment failed")
         }
@@ -233,6 +233,15 @@ export default function ElectricityPage() {
             required
           />
 
+          <Input
+            label="Phone Number (for SMS token)"
+            type="tel"
+            placeholder="08012345678"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            icon={<Zap className="w-4 h-4" />}
+          />
+
           {price > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -243,6 +252,22 @@ export default function ElectricityPage() {
                 <span className="text-gray-600 dark:text-gray-400">You pay</span>
                 <span className="font-bold text-lg text-blue-700 dark:text-blue-300">{formatCurrencyShort(price)}</span>
               </div>
+            </motion.div>
+          )}
+
+          {token && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-green-50 dark:bg-green-900/30 rounded-xl p-5 border-2 border-green-300 dark:border-green-700"
+            >
+              <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">Electricity Token</p>
+              <p className="text-2xl font-bold text-green-800 dark:text-green-200 tracking-wider text-center select-all">
+                {token}
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+                Copy this token and use it to recharge your meter
+              </p>
             </motion.div>
           )}
 

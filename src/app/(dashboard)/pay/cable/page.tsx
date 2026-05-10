@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { createClient } from "@/lib/supabase/client"
 import { formatCurrencyShort } from "@/lib/utils"
 import { calculateServicePrice } from "@/lib/pricing"
 import { Loader2, Tv, CheckCircle, XCircle } from "lucide-react"
@@ -111,32 +110,29 @@ export default function CablePage() {
 
       setLoading(true)
       try {
-        const purchaseRes = await fetch("/api/proxy/cable", {
+        const purchaseRes = await fetch("/api/purchase", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            cable: provider,
-            iuc,
-            cable_plan: Number(selectedPlan.id),
-            "request-id": `EJP_CB_${Date.now()}`,
+            service: "cable",
+            userPrice: price,
+            providerCost: Number(selectedPlan.price),
+            beneficiary: iuc,
+            apiParams: {
+              cable: provider,
+              iuc,
+              cable_plan: Number(selectedPlan.id),
+              bypass: true,
+              "request-id": `EJP_CB_${Date.now()}`,
+            },
+            details: { provider: cableProviders[provider - 1]?.name, iuc, plan: selectedPlan.name },
           }),
         })
 
         const data = await purchaseRes.json()
         if (data.status === "success") {
           addToast("success", `Cable subscription successful: ${selectedPlan.name}`)
-          setBalance(balance - price)
-
-          const supabase = createClient()
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            type: "cable",
-            amount: price,
-            fee: price - Number(selectedPlan.price),
-            status: "success",
-            details: { provider: cableProviders[provider - 1]?.name, iuc, plan: selectedPlan.name },
-            api_reference: data["request-id"],
-          })
+          setBalance(data.newBalance)
         } else {
           addToast("error", data.message || "Purchase failed")
         }

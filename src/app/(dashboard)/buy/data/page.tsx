@@ -11,7 +11,6 @@ import { formatCurrencyShort, isValidPhone } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { createClient } from "@/lib/supabase/client"
 import { Loader2, Phone } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -86,14 +85,27 @@ export default function BuyDataPage() {
 
         if (!networkObj) throw new Error("Network not found")
 
-        const res = await fetch("/api/proxy/data", {
+        const res = await fetch("/api/purchase", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            network: networkObj.id,
-            phone,
-            data_plan: selectedPlan.plan_id,
-            "request-id": `EJP_DT_${Date.now()}`,
+            service: "data",
+            userPrice: price,
+            providerCost: selectedPlan.price,
+            beneficiary: phone,
+            apiParams: {
+              network: networkObj.id,
+              phone,
+              data_plan: selectedPlan.plan_id,
+              Ported_number: true,
+              "request-id": `EJP_DT_${Date.now()}`,
+            },
+            details: {
+              phone,
+              network: getNetworkName(network),
+              plan: selectedPlan.datasize,
+              type: selectedPlan.type,
+            },
           }),
         })
 
@@ -101,23 +113,7 @@ export default function BuyDataPage() {
 
         if (data.status === "success") {
           addToast("success", `Data purchase successful: ${selectedPlan.datasize}`)
-          setBalance(balance - price)
-
-          const supabase = createClient()
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            type: "data",
-            amount: price,
-            fee: price - selectedPlan.price,
-            status: "success",
-            details: {
-              phone,
-              network: getNetworkName(network),
-              plan: selectedPlan.datasize,
-              type: selectedPlan.type,
-            },
-            api_reference: data["request-id"],
-          })
+          setBalance(data.newBalance)
         } else {
           addToast("error", data.message || "Purchase failed")
         }
