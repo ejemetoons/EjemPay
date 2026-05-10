@@ -22,9 +22,9 @@ interface CablePlan {
 }
 
 const cableProviders = [
-  { id: 1, name: "GOTV" },
-  { id: 2, name: "DSTV" },
-  { id: 3, name: "Startimes" },
+  { id: 1, name: "GOTV", cable_id: "10" },
+  { id: 2, name: "DSTV", cable_id: "11" },
+  { id: 3, name: "Startimes", cable_id: "12" },
 ]
 
 export default function CablePage() {
@@ -67,8 +67,8 @@ export default function CablePage() {
     setIucValidated(false)
     setCustomerName("")
     try {
-      const providerName = cableProviders[provider - 1]?.name
-      const res = await fetch("/api/proxy/cable/cable-validation?iuc=" + encodeURIComponent(iuc.trim()) + "&cable=" + providerName)
+      const cableId = cableProviders[provider - 1]?.cable_id
+      const res = await fetch("/api/proxy/cable/cable-validation?iuc=" + encodeURIComponent(iuc.trim()) + "&cable=" + cableId)
       const data = await res.json()
       if (data.status === "success") {
         setIucValidated(true)
