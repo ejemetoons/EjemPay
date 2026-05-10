@@ -1,76 +1,90 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { calculateServicePrice } from "@/lib/pricing"
-import { formatCurrencyShort } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2, Zap } from "lucide-react"
+import { formatCurrencyShort } from "@/lib/utils"
+import { calculateServicePrice } from "@/lib/pricing"
+import { Loader2, Zap, CheckCircle, XCircle } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface DisCo {
   id: string
   name: string
   abb: string
+  apidiscount: string
 }
 
-export default function PayElectricityPage() {
+export default function ElectricityPage() {
   const [discos, setDiscos] = useState<DisCo[]>([])
-  const [selectedDisco, setSelectedDisco] = useState<DisCo | null>(null)
-  const [meterNumber, setMeterNumber] = useState("")
+  const [selectedDisco, setSelectedDisco] = useState<string>("")
   const [meterType, setMeterType] = useState<"prepaid" | "postpaid">("prepaid")
+  const [meterNumber, setMeterNumber] = useState("")
   const [amount, setAmount] = useState("")
   const [loading, setLoading] = useState(false)
-  const [loadingDiscos, setLoadingDiscos] = useState(false)
-  const [validating, setValidating] = useState(false)
-  const [validatedName, setValidatedName] = useState("")
+  const [loadingDiscos, setLoadingDiscos] = useState(true)
+  const [validatingMeter, setValidatingMeter] = useState(false)
+  const [meterValidated, setMeterValidated] = useState(false)
+  const [customerName, setCustomerName] = useState("")
+  const [customerAddress, setCustomerAddress] = useState("")
+  const [validationError, setValidationError] = useState("")
   const { user } = useAuthStore()
   const { balance, setBalance } = useWalletStore()
   const { openPinModal, addToast } = useUiStore()
 
   useEffect(() => {
-    async function loadDiscos() {
-      setLoadingDiscos(true)
+    async function load() {
       try {
         const res = await fetch("/api/proxy/get-bill")
-        const data = await res.json()
+        const data: DisCo[] = await res.json()
         setDiscos(data)
       } catch {
-        addToast("error", "Failed to load DisCos")
+        addToast("error", "Failed to load electricity providers")
       } finally {
         setLoadingDiscos(false)
       }
     }
-    loadDiscos()
+    load()
   }, [])
 
-  const apiCost = Number(amount) || 0
-  const price = calculateServicePrice(apiCost, "electricity", user?.tier || "standard")
+  useEffect(() => {
+    setMeterValidated(false)
+    setCustomerName("")
+    setCustomerAddress("")
+    setValidationError("")
+  }, [meterNumber, meterType, selectedDisco])
 
-  const validateMeter = async () => {
-    if (!selectedDisco || !meterNumber) return
-    setValidating(true)
+  const validateMeter = useCallback(async () => {
+    if (!selectedDisco || !meterNumber.trim()) return
+    setValidatingMeter(true)
+    setValidationError("")
+    setMeterValidated(false)
+    setCustomerName("")
+    setCustomerAddress("")
     try {
-      const res = await fetch(
-        `/api/proxy/bill/bill-validation?meter_number=${encodeURIComponent(meterNumber)}&meter_type=${meterType}&disco=${selectedDisco.id}`
-      )
+      const res = await fetch(`/api/proxy/bill/bill-validation?meter_number=${meterNumber.trim()}&meter_type=${meterType}&disco=${selectedDisco}`)
       const data = await res.json()
       if (data.status === "success") {
-        setValidatedName(data.name)
-        addToast("success", `Validated: ${data.name}`)
+        setMeterValidated(true)
+        setCustomerName(data.name || "Validated")
+        setCustomerAddress(data.customer_address || "")
       } else {
-        addToast("error", data.message || "Validation failed")
+        setValidationError(data.message || "Meter validation failed")
       }
     } catch {
-      addToast("error", "Validation failed")
+      setValidationError("Validation failed. Check the meter number.")
     } finally {
-      setValidating(false)
+      setValidatingMeter(false)
     }
-  }
+  }, [selectedDisco, meterNumber, meterType])
+
+  const numAmount = Number(amount) || 0
+  const price = calculateServicePrice(numAmount, "electricity", user?.tier || "standard")
 
   const handlePurchase = () => {
     if (!user?.tx_pin) {
@@ -90,13 +104,12 @@ export default function PayElectricityPage() {
       }
 
       setLoading(true)
-
       try {
-        const res = await fetch("/api/proxy/bill", {
+        const purchaseRes = await fetch("/api/proxy/bill", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            disco: Number(selectedDisco?.id),
+            disco: Number(selectedDisco),
             meter_type: meterType,
             meter_number: meterNumber,
             amount: String(amount),
@@ -104,10 +117,9 @@ export default function PayElectricityPage() {
           }),
         })
 
-        const data = await res.json()
-
+        const data = await purchaseRes.json()
         if (data.status === "success") {
-          addToast("success", `Electricity payment successful`)
+          addToast("success", "Electricity payment successful!")
           setBalance(balance - price)
 
           const supabase = createClient()
@@ -115,14 +127,9 @@ export default function PayElectricityPage() {
             user_id: user.id,
             type: "electricity",
             amount: price,
-            fee: price - apiCost,
+            fee: price - numAmount,
             status: "success",
-            details: {
-              meter: meterNumber,
-              disco: selectedDisco?.name,
-              type: meterType,
-              token: data.token,
-            },
+            details: { disco: selectedDisco, meter_number: meterNumber, meter_type: meterType, amount: numAmount },
             api_reference: data["request-id"],
           })
         } else {
@@ -136,84 +143,86 @@ export default function PayElectricityPage() {
     })
   }
 
+  const canSubmit = selectedDisco && meterNumber.trim() && meterValidated && amount && !validatingMeter
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Pay Electricity</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Pay Electricity</h2>
 
       <Card glass>
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">DisCo Provider</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Distribution Company</label>
             {loadingDiscos ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
               </div>
             ) : (
               <select
-                value={selectedDisco?.id || ""}
-                onChange={(e) => {
-                  const disco = discos.find((d) => d.id === e.target.value)
-                  setSelectedDisco(disco || null)
-                  setValidatedName("")
-                }}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedDisco}
+                onChange={(e) => setSelectedDisco(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select DisCo</option>
                 {discos.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
+                  <option key={d.id} value={d.id}>{d.name} ({d.abb})</option>
                 ))}
               </select>
             )}
           </div>
 
           <div>
-            <Input
-              label="Meter Number"
-              type="text"
-              placeholder="Enter meter number"
-              value={meterNumber}
-              onChange={(e) => setMeterNumber(e.target.value)}
-            />
-            {validatedName && (
-              <p className="text-sm text-green-600 mt-1">✓ {validatedName}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Meter Type</label>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Meter Type</label>
+            <div className="grid grid-cols-2 gap-2">
               {(["prepaid", "postpaid"] as const).map((type) => (
                 <button
                   key={type}
-                  onClick={() => {
-                    setMeterType(type)
-                    setValidatedName("")
-                  }}
-                  className={`p-3 rounded-xl border-2 text-center capitalize transition-all ${
+                  onClick={() => setMeterType(type)}
+                  className={`p-3 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                     meterType === type
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
                   }`}
                 >
-                  <Zap className="w-5 h-5 mx-auto mb-1 text-gray-400" />
                   {type}
                 </button>
               ))}
             </div>
           </div>
 
-          {selectedDisco && meterNumber && !validatedName && (
-            <Button
-              variant="secondary"
-              onClick={validateMeter}
-              isLoading={validating}
-              className="w-full"
-            >
-              {validating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Validate Meter"}
-            </Button>
-          )}
+          <div>
+            <Input
+              label="Meter Number"
+              placeholder="Enter meter number"
+              value={meterNumber}
+              onChange={(e) => setMeterNumber(e.target.value)}
+              onBlur={validateMeter}
+              icon={<Zap className="w-4 h-4" />}
+            />
+            {validatingMeter && (
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-blue-600 dark:text-blue-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Validating meter number...
+              </div>
+            )}
+            {meterValidated && customerName && (
+              <div className="mt-1.5 text-sm text-green-600 dark:text-green-400 space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {customerName}
+                </div>
+                {customerAddress && (
+                  <p className="text-gray-500 dark:text-gray-400 ml-5">{customerAddress}</p>
+                )}
+              </div>
+            )}
+            {validationError && (
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-red-500">
+                <XCircle className="w-3.5 h-3.5" />
+                {validationError}
+              </div>
+            )}
+          </div>
 
           <Input
             label="Amount (₦)"
@@ -222,29 +231,34 @@ export default function PayElectricityPage() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
-            min="100"
           />
 
           {price > 0 && (
-            <div className="bg-blue-50 rounded-xl p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4"
+            >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">You pay</span>
-                <span className="font-bold text-lg text-blue-700">{formatCurrencyShort(price)}</span>
+                <span className="text-gray-600 dark:text-gray-400">You pay</span>
+                <span className="font-bold text-lg text-blue-700 dark:text-blue-300">{formatCurrencyShort(price)}</span>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          <Button
-            onClick={handlePurchase}
-            className="w-full"
-            size="lg"
-            disabled={!validatedName || !amount || loading}
-            isLoading={loading}
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Now"}
-          </Button>
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Button
+              onClick={handlePurchase}
+              className="w-full"
+              size="lg"
+              disabled={!canSubmit || loading}
+              isLoading={loading}
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Electricity"}
+            </Button>
+          </motion.div>
         </div>
       </Card>
-    </div>
+    </motion.div>
   )
 }

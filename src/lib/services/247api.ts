@@ -141,7 +141,7 @@ export async function getCablePlans(cable: string): Promise<CablePlan[]> {
   return apiRequest<CablePlan[]>(`/get-cable-plan?cable=${cable}`)
 }
 
-export async function validateCable(iuc: string, cable: number): Promise<ValidationResult> {
+export async function validateCable(iuc: string, cable: string): Promise<ValidationResult> {
   return apiRequest<ValidationResult>(
     `/cable/cable-validation?iuc=${encodeURIComponent(iuc)}&cable=${cable}`
   )

@@ -21,10 +21,10 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25",
-    secondary: "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50",
-    ghost: "text-gray-600 hover:bg-gray-100",
-    danger: "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/25",
+    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25 dark:shadow-blue-500/20",
+    secondary: "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50",
+    ghost: "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+    danger: "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/25 dark:shadow-red-500/20",
   }
 
   const sizes = {
@@ -36,7 +36,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "relative inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+        "relative inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:pointer-events-none",
         variants[variant],
         sizes[size],
         className

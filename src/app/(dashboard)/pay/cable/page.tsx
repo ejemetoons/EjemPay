@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { calculateServicePrice } from "@/lib/pricing"
-import { formatCurrencyShort } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2, Tv } from "lucide-react"
+import { formatCurrencyShort } from "@/lib/utils"
+import { calculateServicePrice } from "@/lib/pricing"
+import { Loader2, Tv, CheckCircle, XCircle } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface CablePlan {
   id: string
@@ -21,31 +22,34 @@ interface CablePlan {
 }
 
 const cableProviders = [
-  { name: "GOTV", id: 1 },
-  { name: "DSTV", id: 2 },
-  { name: "Startimes", id: 3 },
+  { id: 1, name: "GOTV" },
+  { id: 2, name: "DSTV" },
+  { id: 3, name: "Startimes" },
 ]
 
-export default function PayCablePage() {
-  const [selectedProvider, setSelectedProvider] = useState<{ name: string; id: number } | null>(null)
+export default function CablePage() {
+  const [provider, setProvider] = useState<number | null>(null)
   const [iuc, setIuc] = useState("")
   const [plans, setPlans] = useState<CablePlan[]>([])
   const [selectedPlan, setSelectedPlan] = useState<CablePlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingPlans, setLoadingPlans] = useState(false)
-  const [validating, setValidating] = useState(false)
-  const [validatedName, setValidatedName] = useState("")
+  const [validatingIuc, setValidatingIuc] = useState(false)
+  const [iucValidated, setIucValidated] = useState(false)
+  const [customerName, setCustomerName] = useState("")
+  const [validationError, setValidationError] = useState("")
   const { user } = useAuthStore()
   const { balance, setBalance } = useWalletStore()
   const { openPinModal, addToast } = useUiStore()
 
   useEffect(() => {
     async function loadPlans() {
-      if (!selectedProvider) return
+      if (!provider) return
       setLoadingPlans(true)
+      setSelectedPlan(null)
       try {
-        const res = await fetch(`/api/proxy/get-cable-plan?cable=${selectedProvider.name}`)
-        const data = await res.json()
+        const res = await fetch(`/api/proxy/get-cable-plan?cable=${cableProviders[provider - 1]?.name}`)
+        const data: CablePlan[] = await res.json()
         setPlans(data)
       } catch {
         addToast("error", "Failed to load cable plans")
@@ -54,32 +58,38 @@ export default function PayCablePage() {
       }
     }
     loadPlans()
-  }, [selectedProvider])
+  }, [provider])
 
-  const price = selectedPlan
-    ? calculateServicePrice(Number(selectedPlan.price), "cable", user?.tier || "standard")
-    : 0
-
-  const validateIuc = async () => {
-    if (!selectedProvider || !iuc) return
-    setValidating(true)
+  const validateIuc = useCallback(async () => {
+    if (!provider || !iuc.trim()) return
+    setValidatingIuc(true)
+    setValidationError("")
+    setIucValidated(false)
+    setCustomerName("")
     try {
-      const res = await fetch(
-        `/api/proxy/cable/cable-validation?iuc=${encodeURIComponent(iuc)}&cable=${selectedProvider.id}`
-      )
+      const providerName = cableProviders[provider - 1]?.name
+      const res = await fetch("/api/proxy/cable/cable-validation?iuc=" + encodeURIComponent(iuc.trim()) + "&cable=" + providerName)
       const data = await res.json()
       if (data.status === "success") {
-        setValidatedName(data.name)
-        addToast("success", `Validated: ${data.name}`)
+        setIucValidated(true)
+        setCustomerName(data.name || "Validated")
       } else {
-        addToast("error", data.message || "Validation failed")
+        setValidationError(data.message || "IUC validation failed")
       }
     } catch {
-      addToast("error", "Validation failed")
+      setValidationError("Validation failed. Check the IUC number.")
     } finally {
-      setValidating(false)
+      setValidatingIuc(false)
     }
-  }
+  }, [provider, iuc])
+
+  useEffect(() => {
+    setIucValidated(false)
+    setCustomerName("")
+    setValidationError("")
+  }, [iuc, provider])
+
+  const price = selectedPlan ? calculateServicePrice(Number(selectedPlan.price), "cable", user?.tier || "standard") : 0
 
   const handlePurchase = () => {
     if (!user?.tx_pin) {
@@ -93,30 +103,28 @@ export default function PayCablePage() {
         return
       }
 
-      if (!selectedPlan) return
+      if (!selectedPlan || !provider) return
       if (balance < price) {
         addToast("error", "Insufficient wallet balance")
         return
       }
 
       setLoading(true)
-
       try {
-        const res = await fetch("/api/proxy/cable", {
+        const purchaseRes = await fetch("/api/proxy/cable", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            cable: selectedProvider?.id,
+            cable: provider,
             iuc,
             cable_plan: Number(selectedPlan.id),
             "request-id": `EJP_CB_${Date.now()}`,
           }),
         })
 
-        const data = await res.json()
-
+        const data = await purchaseRes.json()
         if (data.status === "success") {
-          addToast("success", `Cable payment successful: ${selectedPlan.name}`)
+          addToast("success", `Cable subscription successful: ${selectedPlan.name}`)
           setBalance(balance - price)
 
           const supabase = createClient()
@@ -126,50 +134,42 @@ export default function PayCablePage() {
             amount: price,
             fee: price - Number(selectedPlan.price),
             status: "success",
-            details: {
-              iuc,
-              plan: selectedPlan.name,
-              provider: selectedProvider?.name,
-            },
+            details: { provider: cableProviders[provider - 1]?.name, iuc, plan: selectedPlan.name },
             api_reference: data["request-id"],
           })
         } else {
-          addToast("error", data.message || "Payment failed")
+          addToast("error", data.message || "Purchase failed")
         }
       } catch (err: unknown) {
-        addToast("error", err instanceof Error ? err.message : "Failed to pay cable")
+        addToast("error", err instanceof Error ? err.message : "Failed to purchase cable")
       } finally {
         setLoading(false)
       }
     })
   }
 
+  const canSubmit = provider && iuc.trim() && iucValidated && selectedPlan && !validatingIuc
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Pay Cable TV</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Pay Cable TV</h2>
 
       <Card glass>
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
-            <div className="grid grid-cols-3 gap-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cable Provider</label>
+            <div className="grid grid-cols-3 gap-2">
               {cableProviders.map((p) => (
                 <button
-                  key={p.name}
-                  onClick={() => {
-                    setSelectedProvider(p)
-                    setPlans([])
-                    setSelectedPlan(null)
-                    setValidatedName("")
-                  }}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
-                    selectedProvider?.name === p.name
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
+                  key={p.id}
+                  onClick={() => setProvider(p.id)}
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                    provider === p.id
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
                   }`}
                 >
-                  <Tv className="w-6 h-6 mx-auto mb-1 text-gray-400" />
-                  <p className="text-sm font-medium">{p.name}</p>
+                  {p.name}
                 </button>
               ))}
             </div>
@@ -177,80 +177,89 @@ export default function PayCablePage() {
 
           <div>
             <Input
-              label="Smart Card / IUC Number"
-              type="text"
+              label="IUC / Smart Card Number"
               placeholder="Enter IUC number"
               value={iuc}
               onChange={(e) => setIuc(e.target.value)}
+              onBlur={validateIuc}
+              icon={<Tv className="w-4 h-4" />}
             />
-            {validatedName && (
-              <p className="text-sm text-green-600 mt-1">✓ {validatedName}</p>
+            {validatingIuc && (
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-blue-600 dark:text-blue-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Validating IUC number...
+              </div>
+            )}
+            {iucValidated && customerName && (
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-green-600 dark:text-green-400">
+                <CheckCircle className="w-3.5 h-3.5" />
+                {customerName}
+              </div>
+            )}
+            {validationError && (
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-red-500">
+                <XCircle className="w-3.5 h-3.5" />
+                {validationError}
+              </div>
             )}
           </div>
 
-          {selectedProvider && iuc && !validatedName && (
-            <Button
-              variant="secondary"
-              onClick={validateIuc}
-              isLoading={validating}
-              className="w-full"
-            >
-              {validating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Validate IUC"}
-            </Button>
-          )}
-
-          {loadingPlans && (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-            </div>
-          )}
-
-          {plans.length > 0 && (
+          {provider && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Plan</label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {plans.map((plan) => (
-                  <button
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan)}
-                    className={`w-full p-3 rounded-xl border-2 text-left transition-all flex justify-between ${
-                      selectedPlan?.id === plan.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <span className="font-medium">{plan.name}</span>
-                    <span className="text-blue-600 font-semibold">
-                      {formatCurrencyShort(
-                        calculateServicePrice(Number(plan.price), "cable", user?.tier || "standard")
-                      )}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Plan</label>
+              {loadingPlans ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : plans.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No plans available</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                  {plans.map((plan) => (
+                    <button
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan)}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${
+                        selectedPlan?.id === plan.id
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400"
+                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      }`}
+                    >
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{plan.name}</p>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">{formatCurrencyShort(Number(plan.price))}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {price > 0 && (
-            <div className="bg-blue-50 rounded-xl p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4"
+            >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">You pay</span>
-                <span className="font-bold text-lg text-blue-700">{formatCurrencyShort(price)}</span>
+                <span className="text-gray-600 dark:text-gray-400">You pay</span>
+                <span className="font-bold text-lg text-blue-700 dark:text-blue-300">{formatCurrencyShort(price)}</span>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          <Button
-            onClick={handlePurchase}
-            className="w-full"
-            size="lg"
-            disabled={!selectedPlan || !validatedName || loading}
-            isLoading={loading}
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Now"}
-          </Button>
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Button
+              onClick={handlePurchase}
+              className="w-full"
+              size="lg"
+              disabled={!canSubmit || loading}
+              isLoading={loading}
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Cable"}
+            </Button>
+          </motion.div>
         </div>
       </Card>
-    </div>
+    </motion.div>
   )
 }

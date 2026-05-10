@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 import { ToastContainer } from "@/components/ui/toast"
 import { PinModal } from "@/components/ui/pin-modal"
 
@@ -17,11 +18,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 min-h-screen">
-        {children}
-        <ToastContainer />
-        <PinModal />
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-gray-50 dark:bg-gray-950 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <ThemeProvider>
+          {children}
+          <ToastContainer />
+          <PinModal />
+        </ThemeProvider>
       </body>
     </html>
   )

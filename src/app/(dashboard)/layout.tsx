@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
+import { BottomNav } from "@/components/dashboard/bottom-nav"
 
 export default function DashboardLayout({
   children,
@@ -7,12 +8,13 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex transition-colors duration-300 pb-16 lg:pb-0">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
         <DashboardHeader />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl mx-auto w-full">{children}</main>
       </div>
+      <BottomNav />
     </div>
   )
 }

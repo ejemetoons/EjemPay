@@ -1,5 +1,3 @@
-import crypto from "crypto"
-
 const SQUAD_BASE_URL = process.env.SQUAD_BASE_URL || "https://api-d.squadco.com"
 const SQUAD_SECRET_KEY = process.env.SQUAD_SECRET_KEY || ""
 const SQUAD_PUBLIC_KEY = process.env.SQUAD_PUBLIC_KEY || ""
@@ -101,6 +99,7 @@ export function validateWebhookSignature(
 ): boolean {
   if (!signature) return false
 
+  const crypto = require("crypto")
   const hash = crypto
     .createHmac("sha512", SQUAD_SECRET_KEY)
     .update(body)

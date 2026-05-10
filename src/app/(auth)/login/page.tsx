@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Mail, Lock, Loader2 } from "lucide-react"
+import { Mail, Lock, Loader2, Moon, Sun } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const router = useRouter()
   const supabase = createClient()
+  const { theme, toggle } = useTheme()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,7 +42,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+      <button
+        onClick={toggle}
+        className="fixed top-4 right-4 p-2 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 z-50"
+      >
+        {theme === "dark" ? <Sun className="w-5 h-5 dark:text-gray-200" /> : <Moon className="w-5 h-5" />}
+      </button>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -48,18 +57,27 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+          <motion.h1
+            className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent"
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             Ejempay
-          </h1>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
+          </motion.h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to your account</p>
         </div>
 
         <Card glass>
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl">
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl"
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
 
             <Input
@@ -83,23 +101,25 @@ export default function LoginPage() {
             />
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-600">
-                <input type="checkbox" className="rounded border-gray-300" />
+              <label className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800" />
                 Remember me
               </label>
-              <Link href="/forgot-password" className="text-blue-600 hover:underline">
+              <Link href="/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
                 Forgot password?
               </Link>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={loading}>
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
-            </Button>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button type="submit" className="w-full" size="lg" isLoading={loading}>
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+              </Button>
+            </motion.div>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
             Don't have an account?{" "}
-            <Link href="/register" className="text-blue-600 font-medium hover:underline">
+            <Link href="/register" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
               Create one
             </Link>
           </p>

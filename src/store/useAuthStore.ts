@@ -8,6 +8,7 @@ interface UserProfile {
   phone: string | null
   tier: Tier
   tx_pin: string | null
+  created_at: string | null
 }
 
 interface AuthState {

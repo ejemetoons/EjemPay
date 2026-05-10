@@ -6,13 +6,15 @@ export function calculateServicePrice(
   serviceType: ServiceType,
   tier: Tier
 ): number {
+  if (serviceType === "airtime") {
+    return apiCost
+  }
   if (tier === "reseller") {
     if (serviceType === "data") {
       return apiCost + 7
     }
     return Math.ceil(apiCost * 1.01)
   }
-
   if (serviceType === "data") {
     return apiCost + 20
   }

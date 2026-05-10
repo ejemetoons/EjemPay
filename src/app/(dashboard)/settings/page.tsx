@@ -1,28 +1,30 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { formatCurrencyShort } from "@/lib/utils"
 import { getUpgradeFee, formatPrice } from "@/lib/pricing"
-import { Loader2, Crown, User, Phone, Lock } from "lucide-react"
+import { Crown, User, Phone, Lock, Mail, Calendar, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 
 export default function SettingsPage() {
-  const { user, setUser } = useAuthStore()
+  const { user, setUser, clearSession } = useAuthStore()
   const { balance, setBalance } = useWalletStore()
-  const { openPinModal, addToast } = useUiStore()
+  const { addToast, openPinModal } = useUiStore()
   const [fullName, setFullName] = useState("")
   const [phone, setPhone] = useState("")
-  const [newPin, setNewPin] = useState("")
+  const [loading, setLoading] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const supabase = createClient()
+  const [loggingOut, setLoggingOut] = useState(false)
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     if (user) {
@@ -31,10 +33,10 @@ export default function SettingsPage() {
     }
   }, [user])
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
-    setSaving(true)
+    setLoading(true)
 
     try {
       const { error } = await supabase
@@ -45,79 +47,82 @@ export default function SettingsPage() {
       if (error) throw error
 
       setUser({ ...user, full_name: fullName, phone })
-      addToast("success", "Profile updated")
+      addToast("success", "Profile updated successfully")
     } catch (err: unknown) {
       addToast("error", err instanceof Error ? err.message : "Failed to update profile")
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
   }
 
-  const handleSetPin = async () => {
-    if (!user || newPin.length !== 4) return
-    setSaving(true)
+  const handleSetPin = () => {
+    if (!user) return
+    openPinModal(async (pin: string) => {
+      if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        addToast("error", "PIN must be exactly 4 digits")
+        return
+      }
 
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ tx_pin: newPin })
-        .eq("id", user.id)
+      setLoading(true)
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ tx_pin: pin })
+          .eq("id", user.id)
 
-      if (error) throw error
+        if (error) throw error
 
-      setUser({ ...user, tx_pin: newPin })
-      setNewPin("")
-      addToast("success", "Transaction PIN set successfully")
-    } catch (err: unknown) {
-      addToast("error", err instanceof Error ? err.message : "Failed to set PIN")
-    } finally {
-      setSaving(false)
-    }
+        setUser({ ...user, tx_pin: pin })
+        addToast("success", "Transaction PIN set successfully")
+      } catch (err: unknown) {
+        addToast("error", err instanceof Error ? err.message : "Failed to set PIN")
+      } finally {
+        setLoading(false)
+      }
+    })
   }
 
-  const handleUpgrade = () => {
-    if (user?.tier === "reseller") {
-      addToast("info", "You are already a reseller")
-      return
-    }
+  const handleUpgrade = async () => {
+    if (!user) return
+    const fee = getUpgradeFee()
 
-    if (balance < getUpgradeFee()) {
-      addToast("error", `Insufficient balance. You need ${formatPrice(getUpgradeFee())} to upgrade.`)
+    if (balance < fee) {
+      addToast("error", `Insufficient balance. Upgrade fee is ${formatPrice(fee)}`)
       return
     }
 
     openPinModal(async (pin: string) => {
-      if (pin !== user?.tx_pin) {
+      if (pin !== user.tx_pin) {
         addToast("error", "Incorrect PIN")
         return
       }
 
       setUpgrading(true)
-
       try {
-        const { error: profileError } = await supabase
+        const { error } = await supabase
           .from("profiles")
           .update({ tier: "reseller" })
           .eq("id", user.id)
 
-        if (profileError) throw profileError
-
-        const newBalance = balance - getUpgradeFee()
-        await supabase.from("wallets").update({ balance: newBalance }).eq("user_id", user.id)
+        if (error) throw error
 
         await supabase.from("transactions").insert({
           user_id: user.id,
           type: "upgrade",
-          amount: getUpgradeFee(),
+          amount: fee,
           fee: 0,
           status: "success",
           details: { from: "standard", to: "reseller" },
         })
 
+        await supabase
+          .from("wallets")
+          .update({ balance: balance - fee })
+          .eq("user_id", user.id)
+
         setUser({ ...user, tier: "reseller" })
-        setBalance(newBalance)
-        addToast("success", "Upgraded to Reseller! Enjoy lower prices.")
-        router.refresh()
+        setBalance(balance - fee)
+        addToast("success", "Upgraded to Reseller tier!")
       } catch (err: unknown) {
         addToast("error", err instanceof Error ? err.message : "Upgrade failed")
       } finally {
@@ -126,96 +131,122 @@ export default function SettingsPage() {
     })
   }
 
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    try {
+      await supabase.auth.signOut()
+      clearSession()
+      router.push("/login")
+    } catch {
+      addToast("error", "Failed to log out")
+    } finally {
+      setLoggingOut(false)
+    }
+  }
 
-      {/* Profile */}
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
+        <Button onClick={handleLogout} variant="danger" isLoading={loggingOut} className="!px-4">
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </Button>
+      </div>
+
       <Card>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <User className="w-5 h-5" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <User className="w-5 h-5 text-blue-600" />
           Profile
         </h3>
-        <form onSubmit={handleSaveProfile} className="space-y-4">
+        <form onSubmit={handleUpdateProfile} className="space-y-4">
           <Input
             label="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            icon={<User className="w-4 h-4" />}
           />
           <Input
-            label="Phone"
-            type="tel"
+            label="Phone Number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            icon={<Phone className="w-4 h-4" />}
           />
-          <Button type="submit" isLoading={saving}>
-            Save Changes
-          </Button>
+          <Button type="submit" isLoading={loading}>Update Profile</Button>
         </form>
       </Card>
 
-      {/* Transaction PIN */}
       <Card>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Lock className="w-5 h-5" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <Mail className="w-5 h-5 text-blue-600" />
+          Account Info
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 text-sm">
+            <Mail className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-500 dark:text-gray-400">Email:</span>
+            <span className="text-gray-900 dark:text-gray-100 font-medium">{user?.email}</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <Crown className="w-4 h-4 text-yellow-500" />
+            <span className="text-gray-500 dark:text-gray-400">Tier:</span>
+            <span className={`font-semibold capitalize ${user?.tier === "reseller" ? "text-yellow-600 dark:text-yellow-400" : "text-gray-900 dark:text-gray-100"}`}>
+              {user?.tier || "Standard"}
+            </span>
+          </div>
+          {memberSince && (
+            <div className="flex items-center gap-3 text-sm">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-500 dark:text-gray-400">Member since:</span>
+              <span className="text-gray-900 dark:text-gray-100">{memberSince}</span>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <Lock className="w-5 h-5 text-blue-600" />
           Transaction PIN
         </h3>
-        <div className="space-y-4">
-          <Input
-            label="New 4-digit PIN"
-            type="password"
-            maxLength={4}
-            value={newPin}
-            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="Enter new PIN"
-          />
-          <Button onClick={handleSetPin} disabled={newPin.length !== 4} isLoading={saving}>
-            Set PIN
-          </Button>
-        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {user?.tx_pin ? "Your transaction PIN is set." : "Set a 4-digit PIN for transaction authorization."}
+        </p>
+        <Button onClick={handleSetPin} variant={user?.tx_pin ? "secondary" : "primary"} isLoading={loading}>
+          {user?.tx_pin ? "Change PIN" : "Set PIN"}
+        </Button>
       </Card>
 
-      {/* Upgrade to Reseller */}
-      <Card glass={user?.tier !== "reseller"}>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Crown className="w-5 h-5 text-yellow-500" />
-          Membership
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <Crown className="w-5 h-5 text-yellow-600" />
+          Reseller Upgrade
         </h3>
-
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-500">Current Tier</p>
-              <p className="text-xl font-bold capitalize">{user?.tier || "standard"}</p>
-            </div>
-            {user?.tier === "reseller" ? (
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                Reseller Active
-              </span>
-            ) : (
-              <Button onClick={handleUpgrade} isLoading={upgrading}>
-                Upgrade — {formatPrice(getUpgradeFee())}
-              </Button>
-            )}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Current tier: <span className="font-semibold capitalize text-gray-900 dark:text-gray-100">{user?.tier || "Standard"}</span>
+        </p>
+        {user?.tier === "standard" ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Upgrade to Reseller for the lowest prices. One-time fee of {formatPrice(getUpgradeFee())}.
+            </p>
+            <Button onClick={handleUpgrade} isLoading={upgrading}>
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Reseller
+            </Button>
           </div>
-        </div>
-
-        {user?.tier !== "reseller" && (
-          <div className="space-y-2 text-sm text-gray-600">
-            <p className="font-medium">Reseller benefits:</p>
-            <ul className="space-y-1">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                Data: API + ₦7 (vs ₦20 for Standard)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                Airtime/Bills: API + 1% (vs 3% for Standard)
-              </li>
-            </ul>
-          </div>
+        ) : (
+          <p className="text-sm text-green-600 dark:text-green-400 font-medium">You are already on the Reseller tier.</p>
         )}
       </Card>
-    </div>
+    </motion.div>
   )
 }
