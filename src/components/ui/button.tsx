@@ -1,61 +1,42 @@
 "use client"
 
+import { ButtonHTMLAttributes, forwardRef } from "react"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
-import type { ButtonHTMLAttributes, ReactNode } from "react"
+import { Loader2 } from "lucide-react"
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger"
+  variant?: "primary" | "secondary" | "ghost" | "outline"
   size?: "sm" | "md" | "lg"
   isLoading?: boolean
-  children: ReactNode
+  glass?: boolean
 }
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  isLoading = false,
-  className,
-  disabled,
-  children,
-  ...props
-}: ButtonProps) {
-  const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25 dark:shadow-blue-500/20",
-    secondary: "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50",
-    ghost: "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
-    danger: "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/25 dark:shadow-red-500/20",
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "primary", size = "md", isLoading, glass, children, disabled, ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        disabled={disabled || isLoading}
+        className={cn(
+          "inline-flex items-center justify-center font-button text-button rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none",
+          variant === "primary" && "bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-container",
+          variant === "secondary" && "bg-surface-container text-on-surface hover:bg-surface-container-high",
+          variant === "ghost" && "text-primary hover:bg-primary/5",
+          variant === "outline" && "border-2 border-outline-variant text-on-surface hover:border-primary hover:text-primary bg-white",
+          glass && "glass-card",
+          size === "sm" && "h-10 px-4 text-sm",
+          size === "md" && "h-12 px-6",
+          size === "lg" && "h-14 px-8",
+          className
+        )}
+        {...props}
+      >
+        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : children}
+      </button>
+    )
   }
+)
 
-  const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2.5 text-sm",
-    lg: "px-6 py-3.5 text-base",
-  }
+Button.displayName = "Button"
 
-  return (
-    <button
-      className={cn(
-        "relative inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:pointer-events-none",
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      disabled={disabled || isLoading}
-      {...props}
-    >
-      {isLoading && (
-        <span className="absolute inset-0 overflow-hidden rounded-xl">
-          <motion.span
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ x: ["-100%", "100%"] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-          />
-        </span>
-      )}
-      <span className={cn("relative flex items-center gap-2", isLoading && "opacity-0")}>
-        {children}
-      </span>
-    </button>
-  )
-}
+export { Button }

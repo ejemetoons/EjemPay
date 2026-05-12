@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-gray-50 dark:bg-gray-950 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <body className="bg-background text-on-surface min-h-screen smooth-fade">
         <ThemeProvider>
           {children}
           <ToastContainer />

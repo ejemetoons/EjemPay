@@ -1,53 +1,39 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useUiStore } from "@/store/useUiStore"
+import { CheckCircle, XCircle, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle, XCircle, Info, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-
-const icons = {
-  success: CheckCircle,
-  error: XCircle,
-  info: Info,
-}
-
-const colors = {
-  success: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300",
-  error: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300",
-  info: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
-}
 
 export function ToastContainer() {
   const { toasts, removeToast } = useUiStore()
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
-        {toasts.map((toast) => {
-          const Icon = icons[toast.type]
-          return (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, x: 100, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 100, scale: 0.95 }}
-              transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
-              className={cn(
-                "flex items-start gap-3 p-4 rounded-xl border shadow-lg dark:shadow-gray-900/50 backdrop-blur-sm",
-                colors[toast.type]
-              )}
-            >
-              <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p className="text-sm flex-1">{toast.message}</p>
-              <button
-                onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </motion.div>
-          )
-        })}
+        {toasts.map((toast) => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 50, scale: 0.95 }}
+            className={`pointer-events-auto p-4 rounded-xl border shadow-lg backdrop-blur-xl flex items-start gap-3 ${
+              toast.type === "success"
+                ? "bg-white border-secondary-container/30"
+                : "bg-white border-error-container/30"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
+            ) : (
+              <XCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
+            )}
+            <p className="text-sm text-on-surface flex-1">{toast.message}</p>
+            <button onClick={() => removeToast(toast.id)} className="text-outline hover:text-on-surface transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        ))}
       </AnimatePresence>
     </div>
   )

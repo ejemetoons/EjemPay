@@ -113,9 +113,12 @@ export default function BuyAirtimePage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Buy Airtime</h2>
+      <div className="mb-6">
+        <h2 className="text-h2 font-h2 text-primary">Buy Airtime</h2>
+        <p className="text-body-sm text-on-surface-variant">Top up any Nigerian number instantly.</p>
+      </div>
 
-      <Card glass>
+      <Card>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -126,7 +129,7 @@ export default function BuyAirtimePage() {
           <Input
             label="Phone Number"
             type="tel"
-            placeholder="08012345678"
+            placeholder="0801 234 5678"
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             icon={<Phone className="w-4 h-4" />}
@@ -146,17 +149,17 @@ export default function BuyAirtimePage() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount (₦)</label>
+            <label className="block text-label-caps text-on-surface-variant mb-2 ml-1">QUICK AMOUNTS</label>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {[100, 200, 500, 1000].map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setAmount(String(preset))}
-                  className={`p-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                  className={`p-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
                     Number(amount) === preset
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
                   }`}
                 >
                   ₦{preset}
@@ -164,9 +167,9 @@ export default function BuyAirtimePage() {
               ))}
             </div>
             <Input
-              label=""
+              label="Custom Amount"
               type="number"
-              placeholder="Or enter custom amount"
+              placeholder="Enter amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="100"
@@ -177,11 +180,11 @@ export default function BuyAirtimePage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4"
+              className="bg-surface-container rounded-xl p-4"
             >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">You pay</span>
-                <span className="font-bold text-lg text-blue-700 dark:text-blue-300">{formatCurrencyShort(price)}</span>
+                <span className="text-on-surface-variant">You pay</span>
+                <span className="font-bold text-lg text-primary">{formatCurrencyShort(price)}</span>
               </div>
             </motion.div>
           )}

@@ -156,7 +156,7 @@ export default function SettingsPage() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
-        <Button onClick={handleLogout} variant="danger" isLoading={loggingOut} className="!px-4">
+        <Button onClick={handleLogout} variant="ghost" isLoading={loggingOut} className="!px-4 text-error hover:bg-error-container/20">
           <LogOut className="w-4 h-4 mr-2" />
           Logout
         </Button>
@@ -164,7 +164,7 @@ export default function SettingsPage() {
 
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          <User className="w-5 h-5 text-blue-600" />
+          <User className="w-5 h-5 text-primary" />
           Profile
         </h3>
         <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -186,7 +186,7 @@ export default function SettingsPage() {
 
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          <Mail className="w-5 h-5 text-blue-600" />
+          <Mail className="w-5 h-5 text-primary" />
           Account Info
         </h3>
         <div className="space-y-3">
@@ -214,7 +214,7 @@ export default function SettingsPage() {
 
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          <Lock className="w-5 h-5 text-blue-600" />
+          <Lock className="w-5 h-5 text-primary" />
           Transaction PIN
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">

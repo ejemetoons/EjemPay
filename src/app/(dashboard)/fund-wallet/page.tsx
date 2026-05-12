@@ -129,9 +129,9 @@ export default function FundWalletPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
         <Card glass>
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">Verifying your payment...</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we confirm your transaction.</p>
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <p className="text-lg font-medium text-on-surface">Verifying your payment...</p>
+            <p className="text-sm text-on-surface-variant">Please wait while we confirm your transaction.</p>
           </div>
         </Card>
       </motion.div>
@@ -151,7 +151,7 @@ export default function FundWalletPage() {
             <p className={`text-lg font-semibold ${verifyResult.status === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
               {verifyResult.status === "success" ? "Payment Successful!" : "Payment Failed"}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{verifyResult.message}</p>
+            <p className="text-sm text-on-surface-variant">{verifyResult.message}</p>
             <Button onClick={() => setVerifyResult({ status: null, message: "" })}>
               Fund Again
             </Button>
@@ -163,21 +163,24 @@ export default function FundWalletPage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Fund Wallet</h2>
+      <div className="mb-6">
+        <h2 className="text-h2 font-h2 text-primary">Fund Wallet</h2>
+        <p className="text-body-sm text-on-surface-variant">Add money to your wallet securely.</p>
+      </div>
 
       <Card glass>
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Amounts</label>
+            <label className="block text-label-caps text-on-surface-variant mb-2 ml-1">QUICK AMOUNTS</label>
             <div className="grid grid-cols-3 gap-2">
               {quickAmounts.map((a) => (
                 <button
                   key={a}
                   onClick={() => setAmount(String(a))}
-                  className={`p-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                  className={`p-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
                     amount === String(a)
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
                   }`}
                 >
                   {formatCurrencyShort(a)}
@@ -201,28 +204,28 @@ export default function FundWalletPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 space-y-2"
+              className="bg-surface-container rounded-xl p-4 space-y-2"
             >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">You pay</span>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrencyShort(numAmount)}</span>
+                <span className="text-on-surface-variant">You pay</span>
+                <span className="font-semibold text-on-surface">{formatCurrencyShort(numAmount)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Processing fee</span>
-                <span className="text-red-500">-{formatCurrencyShort(fee)}</span>
+                <span className="text-on-surface-variant">Processing fee</span>
+                <span className="text-error">-{formatCurrencyShort(fee)}</span>
               </div>
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">You receive</span>
-                <span className="font-bold text-lg text-green-600 dark:text-green-400">{formatCurrencyShort(youReceive)}</span>
+              <div className="border-t border-outline-variant/30 pt-2 flex justify-between">
+                <span className="font-semibold text-on-surface">You receive</span>
+                <span className="font-bold text-lg text-secondary">{formatCurrencyShort(youReceive)}</span>
               </div>
             </motion.div>
           )}
 
-          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 flex gap-3">
-            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+          <div className="bg-surface-container rounded-xl p-4 flex gap-3">
+            <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">Secure Payment</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <p className="text-sm text-primary font-medium">Secure Payment</p>
+              <p className="text-xs text-on-surface-variant mt-1">
                 Payments are processed securely via Squad. Your wallet will be credited instantly after payment.
               </p>
             </div>

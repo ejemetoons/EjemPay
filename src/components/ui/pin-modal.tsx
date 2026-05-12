@@ -1,9 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { useUiStore } from "@/store/useUiStore"
 import { motion, AnimatePresence } from "framer-motion"
-import { X } from "lucide-react"
-import { useState } from "react"
+import { Lock, X } from "lucide-react"
 
 export function PinModal() {
   const { pinModalOpen, closePinModal, pinCallback } = useUiStore()
@@ -16,19 +16,29 @@ export function PinModal() {
       return
     }
     setError("")
-    pinCallback?.(pin)
-    setPin("")
+    const cb = pinCallback
     closePinModal()
+    if (cb) cb(pin)
+    setPin("")
   }
 
   const handleDigit = (d: string) => {
     if (pin.length < 4) {
-      setPin((p) => p + d)
+      setPin(pin + d)
       setError("")
     }
   }
 
-  const handleDelete = () => setPin((p) => p.slice(0, -1))
+  const handleDelete = () => {
+    setPin(pin.slice(0, -1))
+    setError("")
+  }
+
+  const handleClose = () => {
+    closePinModal()
+    setPin("")
+    setError("")
+  }
 
   return (
     <AnimatePresence>
@@ -37,52 +47,49 @@ export function PinModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => { closePinModal(); setPin(""); setError("") }}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4"
+          onClick={handleClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Enter Transaction PIN</h3>
-              <button
-                onClick={() => { closePinModal(); setPin(""); setError("") }}
-                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-primary" />
+              </div>
+              <button onClick={handleClose} className="text-outline hover:text-on-surface transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
+            <h3 className="text-h3 font-h3 text-center text-primary mb-1">Enter PIN</h3>
+            <p className="text-body-sm text-on-surface-variant text-center mb-6">Confirm your transaction PIN</p>
+
             <div className="flex justify-center gap-3 mb-6">
               {[0, 1, 2, 3].map((i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={false}
-                  animate={pin[i] ? { scale: [1, 1.2, 1] } : {}}
                   className={`w-4 h-4 rounded-full border-2 transition-all ${
-                    pin[i]
-                      ? "bg-blue-600 border-blue-600"
-                      : "border-gray-300 dark:border-gray-600"
+                    pin[i] ? "bg-primary border-primary scale-110" : "border-outline-variant"
                   }`}
                 />
               ))}
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+              <p className="text-xs text-error text-center mb-4">{error}</p>
             )}
 
-            <div className="grid grid-cols-3 gap-3 max-w-[220px] mx-auto">
-              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                 <button
                   key={d}
-                  onClick={() => handleDigit(d)}
-                  className="w-16 h-16 rounded-xl text-xl font-semibold bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 active:scale-95 transition-all"
+                  onClick={() => handleDigit(String(d))}
+                  className="h-14 text-xl font-bold text-on-surface bg-surface-container-high rounded-xl hover:bg-surface-container-highest active:scale-95 transition-all"
                 >
                   {d}
                 </button>
@@ -90,13 +97,13 @@ export function PinModal() {
               <div />
               <button
                 onClick={() => handleDigit("0")}
-                className="w-16 h-16 rounded-xl text-xl font-semibold bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 active:scale-95 transition-all"
+                className="h-14 text-xl font-bold text-on-surface bg-surface-container-high rounded-xl hover:bg-surface-container-highest active:scale-95 transition-all"
               >
                 0
               </button>
               <button
                 onClick={handleDelete}
-                className="w-16 h-16 rounded-xl text-sm font-medium bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:scale-95 transition-all"
+                className="h-14 text-sm font-medium text-outline bg-surface-container-high rounded-xl hover:bg-surface-container-highest active:scale-95 transition-all"
               >
                 DEL
               </button>
@@ -105,7 +112,7 @@ export function PinModal() {
             <button
               onClick={handleSubmit}
               disabled={pin.length !== 4}
-              className="w-full mt-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full h-12 bg-primary text-on-primary font-button rounded-xl shadow-lg shadow-primary/20 disabled:opacity-40 active:scale-[0.98] transition-all"
             >
               Confirm
             </button>

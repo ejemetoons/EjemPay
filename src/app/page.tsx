@@ -123,12 +123,12 @@ export default function LandingPage() {
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card hover className="h-full">
+                <Card className="h-full">
                   <motion.div whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <feature.icon className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4" />
+                    <feature.icon className="w-10 h-10 text-primary mb-4" />
                   </motion.div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{feature.title}</h3>
-                  <p className="text-gray-500 dark:text-gray-400">{feature.desc}</p>
+                  <h3 className="text-lg font-semibold text-on-surface mb-2">{feature.title}</h3>
+                  <p className="text-on-surface-variant">{feature.desc}</p>
                 </Card>
               </motion.div>
             ))}
@@ -154,18 +154,18 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
               >
-                <Card glass={tier.popular} hover className={tier.popular ? "border-blue-200 dark:border-blue-800 ring-2 ring-blue-100 dark:ring-blue-900" : ""}>
+                <Card glass={tier.popular} className={tier.popular ? "border-secondary-container/30 ring-2 ring-secondary-container/20" : ""}>
                   {tier.popular && (
                     <motion.span
                       initial={{ opacity: 0, scale: 0 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full mb-4"
+                      className="inline-block px-3 py-1 bg-secondary-container/10 text-secondary text-xs font-medium rounded-full mb-4"
                     >
                       Most Popular
                     </motion.span>
                   )}
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{tier.name}</h3>
-                  <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-100">{tier.price}</p>
+                  <h3 className="text-xl font-bold text-on-surface">{tier.name}</h3>
+                  <p className="text-3xl font-bold mt-2 text-on-surface">{tier.price}</p>
                   <div className="mt-6 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Data pricing</span>

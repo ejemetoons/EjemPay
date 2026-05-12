@@ -11,12 +11,10 @@ export function NetworkSelector({ selected, onSelect, autoDetected }: NetworkSel
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Select Network
-        </label>
+        <h3 className="text-h3 font-h3 text-on-surface">Select Network</h3>
         {autoDetected && selected && (
-          <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-            Auto-detected
+          <span className="text-[10px] font-bold text-secondary uppercase bg-secondary-container/10 px-2 py-0.5 rounded-full">
+            Auto
           </span>
         )}
       </div>
@@ -32,27 +30,27 @@ export function NetworkSelector({ selected, onSelect, autoDetected }: NetworkSel
               type="button"
               onClick={() => onSelect(net)}
               className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                "flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all",
                 isSelected
-                  ? "border-current shadow-md scale-105"
-                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 opacity-60 hover:opacity-100"
+                  ? "border-primary bg-surface-container shadow-sm"
+                  : "border-outline-variant bg-white hover:border-primary"
               )}
-              style={isSelected ? { borderColor: color, backgroundColor: `${color}15` } : undefined}
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white"
+                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm text-white shadow-sm"
                 style={{ backgroundColor: color }}
               >
                 {logo}
               </div>
-              <span
-                className={cn(
-                  "text-xs font-semibold",
-                  isSelected ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
-                )}
-              >
+              <span className={cn(
+                "text-[10px] uppercase font-bold tracking-wide",
+                isSelected ? "text-primary" : "text-on-surface-variant"
+              )}>
                 {name}
               </span>
+              {isSelected && autoDetected && (
+                <span className="text-[8px] font-bold text-secondary uppercase -mt-1">auto</span>
+              )}
             </button>
           )
         })}

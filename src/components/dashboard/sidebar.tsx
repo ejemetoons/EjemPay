@@ -49,12 +49,12 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 h-screen sticky top-0">
-      <div className="p-6 border-b border-gray-100 dark:border-gray-800">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+    <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-outline-variant/30 h-screen sticky top-0">
+      <div className="p-6 border-b border-outline-variant/30">
+        <h1 className="text-xl font-black bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">
           Ejempay
         </h1>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">VTU Platform</p>
+        <p className="text-xs text-on-surface-variant mt-1">VTU Platform</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -67,28 +67,28 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                  ? "bg-primary/5 text-primary"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
               )}
             >
-              <item.icon className={cn("w-5 h-5", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
+              <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-outline")} />
               <span>{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+      <div className="p-4 border-t border-outline-variant/30 space-y-2">
         <button
           onClick={toggle}
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-all duration-200"
         >
           {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
         </button>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-error hover:bg-error-container/20 transition-all duration-200"
         >
           <LogOut className="w-5 h-5" />
           <span>Logout</span>

@@ -5,12 +5,11 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { calculateWithdrawalFee } from "@/lib/pricing"
-import { formatCurrencyShort, generateRequestId, isValidPhone } from "@/lib/utils"
+import { formatCurrencyShort, generateRequestId } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { Loader2, Landmark, Banknote, ArrowUpFromLine, Info, CheckCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { Loader2, Landmark, Banknote, ArrowUpFromLine, Info, CheckCircle, Wallet } from "lucide-react"
 import { motion } from "framer-motion"
 
 interface Bank {
@@ -30,9 +29,8 @@ export default function WithdrawPage() {
   const [verifyingAccount, setVerifyingAccount] = useState(false)
   const [success, setSuccess] = useState(false)
   const { user } = useAuthStore()
-  const { balance, setBalance } = useWalletStore()
+  const { balance } = useWalletStore()
   const { openPinModal, addToast } = useUiStore()
-  const supabase = createClient()
 
   const numAmount = Number(amount) || 0
   const fee = calculateWithdrawalFee(numAmount)
@@ -131,11 +129,12 @@ export default function WithdrawPage() {
         const data = await res.json()
 
         if (data.status === "success") {
+          const { setBalance } = useWalletStore.getState()
           setBalance(data.newBalance)
           setSuccess(true)
-          addToast("success", `Withdrawal request submitted for ${formatCurrencyShort(numAmount)}`)
+          addToast("success", `Withdrawal successful! ${formatCurrencyShort(numAmount)} sent to ${bankName}`)
         } else {
-          addToast("error", data.message || "Withdrawal failed")
+          addToast("error", data.message || "Withdrawal failed. Please try again.")
         }
       } catch (err: unknown) {
         addToast("error", err instanceof Error ? err.message : "Withdrawal failed")
@@ -148,12 +147,17 @@ export default function WithdrawPage() {
   if (success) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-        <Card glass>
+        <Card>
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
-            <CheckCircle className="w-16 h-16 text-green-500" />
-            <p className="text-lg font-semibold text-green-600 dark:text-green-400">Withdrawal Submitted!</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
-              Your withdrawal request for {formatCurrencyShort(numAmount)} to {bankName} ({accountNumber}) has been submitted. You will be credited within 24 hours.
+            <div className="relative">
+              <div className="absolute inset-0 bg-secondary-container/20 rounded-full animate-ping" />
+              <div className="relative w-20 h-20 bg-secondary-container rounded-full flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-on-secondary-container" />
+              </div>
+            </div>
+            <p className="text-h2 font-h2 text-primary text-center">Transaction Successful</p>
+            <p className="text-body-sm text-on-surface-variant text-center max-w-sm">
+              {formatCurrencyShort(numAmount)} sent to {bankName} ({accountNumber}). Funds will reflect shortly.
             </p>
             <Button onClick={() => {
               setSuccess(false)
@@ -173,69 +177,88 @@ export default function WithdrawPage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Withdraw Funds</h2>
+      <div className="mb-6">
+        <h2 className="text-h2 font-h2 text-primary">Withdraw Funds</h2>
+        <p className="text-body-sm text-on-surface-variant">Transfer your wallet balance to your bank account.</p>
+      </div>
 
-      <Card glass>
+      <Card>
         <div className="space-y-5">
-          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 flex gap-3">
-            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">Current Balance: {formatCurrencyShort(balance)}</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                Withdrawals are processed manually within 24 hours. A fee applies.
-              </p>
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary-container to-primary p-4 shadow-[0_4px_12px_rgba(91,45,142,0.15)]">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+            <div className="relative z-10 flex items-center justify-between">
+              <div>
+                <p className="text-purple-200 text-body-sm font-medium">Available Balance</p>
+                <h3 className="text-white text-h3 font-bold mt-1">{formatCurrencyShort(balance)}</h3>
+              </div>
+              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-6 bg-secondary-container rounded-full" />
+            <h3 className="text-h3 font-h3 text-primary">Transaction Details</h3>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Bank</label>
+            <label className="text-label-caps text-on-surface-variant ml-1 mb-1 block">SELECT BANK</label>
             {loadingBanks ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-on-surface-variant h-14 px-4 bg-surface-container-low rounded-xl border border-outline-variant">
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading banks...
               </div>
             ) : (
-              <select
-                value={bankCode}
-                onChange={(e) => handleBankChange(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-              >
-                <option value="">-- Select Bank --</option>
-                {banks.map((b) => (
-                  <option key={b.code} value={b.code}>{b.name}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={bankCode}
+                  onChange={(e) => handleBankChange(e.target.value)}
+                  className="w-full h-14 pl-12 pr-10 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all appearance-none text-body-md text-on-surface"
+                >
+                  <option value="">Choose your bank</option>
+                  {banks.map((b) => (
+                    <option key={b.code} value={b.code}>{b.name}</option>
+                  ))}
+                </select>
+                <Landmark className="absolute left-4 top-4 w-5 h-5 text-outline pointer-events-none" />
+                <span className="absolute right-4 top-4 text-outline pointer-events-none text-lg">⌄</span>
+              </div>
             )}
           </div>
 
           <div className="space-y-1">
-            <Input
-              label="Account Number"
-              type="tel"
-              placeholder="0123456789"
-              maxLength={10}
-              value={accountNumber}
-              onChange={(e) => {
-                setAccountNumber(e.target.value.replace(/\D/g, ""))
-                setAccountName("")
-              }}
-              icon={<Landmark className="w-4 h-4" />}
-            />
+            <label className="text-label-caps text-on-surface-variant ml-1 mb-1 block">ACCOUNT NUMBER</label>
+            <div className="relative">
+              <input
+                type="tel"
+                placeholder="0123456789"
+                maxLength={10}
+                value={accountNumber}
+                onChange={(e) => {
+                  setAccountNumber(e.target.value.replace(/\D/g, ""))
+                  setAccountName("")
+                }}
+                className="w-full h-14 pl-12 pr-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all text-body-md text-on-surface placeholder:text-outline"
+              />
+              <span className="absolute left-4 top-4 text-outline pointer-events-none text-lg">#</span>
+            </div>
             {verifyingAccount && (
-              <div className="flex items-center gap-1.5 text-sm text-blue-600">
+              <div className="flex items-center gap-1.5 text-sm text-primary mt-1">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying account...
               </div>
             )}
             {accountName && !verifyingAccount && (
-              <p className="text-sm font-medium text-green-600 dark:text-green-400 px-1">
-                {accountName}
-              </p>
+              <div className="flex items-center gap-2 h-12 px-4 bg-purple-50/50 border border-purple-100 rounded-xl mt-1">
+                <div className="w-2 h-2 rounded-full bg-secondary" />
+                <span className="text-secondary font-bold text-body-md">{accountName}</span>
+              </div>
             )}
           </div>
 
           <Input
-            label="Amount (₦)"
+            label="Amount"
             type="number"
-            placeholder="Enter amount to withdraw"
+            placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             icon={<Banknote className="w-4 h-4" />}
@@ -246,22 +269,20 @@ export default function WithdrawPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 space-y-2"
+              className="bg-surface-container-high rounded-xl p-4 border border-outline-variant/30 border-dashed space-y-2"
             >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">You withdraw</span>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrencyShort(numAmount)}</span>
+                <span className="text-on-surface-variant">Withdrawal Fee</span>
+                <span className="font-bold text-primary">{formatCurrencyShort(fee)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Processing fee</span>
-                <span className="text-red-500">-{formatCurrencyShort(fee)}</span>
-              </div>
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">Total deducted</span>
-                <span className="font-bold text-lg text-red-600 dark:text-red-400">{formatCurrencyShort(totalDeduction)}</span>
+              <div className="pt-2 border-t border-outline-variant/30">
+                <p className="text-body-sm text-on-surface-variant leading-relaxed">
+                  <span className="font-bold text-secondary">{formatCurrencyShort(fee)}</span> withdrawal fee applies.
+                  You will receive <span className="font-bold text-primary">{formatCurrencyShort(numAmount)}</span>.
+                </p>
               </div>
               {balance < totalDeduction && (
-                <p className="text-xs text-red-500 mt-1">Insufficient balance</p>
+                <p className="text-xs text-error mt-1">Insufficient balance</p>
               )}
             </motion.div>
           )}
@@ -277,12 +298,17 @@ export default function WithdrawPage() {
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <><ArrowUpFromLine className="w-5 h-5 mr-2" /> Withdraw</>
+                <><ArrowUpFromLine className="w-5 h-5 mr-2" /> Continue</>
               )}
             </Button>
           </motion.div>
         </div>
       </Card>
+
+      <div className="flex justify-center items-center gap-2 py-4">
+        <span className="text-secondary text-sm">✓</span>
+        <span className="text-xs text-outline font-medium">Secured by Ejempay Infrastructure</span>
+      </div>
     </motion.div>
   )
 }

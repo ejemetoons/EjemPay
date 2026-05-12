@@ -28,7 +28,7 @@ export function NetworkLogo({ phone, size = "md" }: NetworkLogoProps) {
       >
         {logo}
       </div>
-      <span className="font-medium text-gray-900">{name}</span>
+      <span className="font-medium text-on-surface">{name}</span>
     </div>
   )
 }
