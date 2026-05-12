@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
     if (SQUAD_SECRET_KEY) {
       try {
-        const squadRes = await fetch(`${SQUAD_BASE_URL}/v1/transfer`, {
+        const squadRes = await fetch(`${SQUAD_BASE_URL}/payout/transfer`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${SQUAD_SECRET_KEY}`,
@@ -74,8 +74,10 @@ export async function POST(req: Request) {
             amount: numAmount * 100,
             bank_code: bankCode,
             account_number: accountNumber,
+            account_name: accountName,
             transaction_reference: reference,
-            narration: "Wallet withdrawal",
+            currency_id: "NGN",
+            remark: "Wallet withdrawal",
           }),
         })
 

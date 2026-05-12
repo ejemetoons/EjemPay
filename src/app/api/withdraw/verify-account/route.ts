@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const res = await fetch(`${SQUAD_BASE_URL}/v1/transfer/validate_account`, {
+    const res = await fetch(`${SQUAD_BASE_URL}/payout/account/lookup`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${SQUAD_SECRET_KEY}`,
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       status: "error",
-      message: data.message || "Account verification failed",
+      message: data.message || "Account verification failed. Check the account number and try again.",
     })
   } catch {
     return NextResponse.json({ error: "Verification failed" }, { status: 500 })
