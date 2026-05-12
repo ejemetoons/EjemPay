@@ -55,7 +55,12 @@ export function formatPricePerGB(plan: DataPlan): string {
 }
 
 export function getSortedPlans(plans: DataPlan[]): DataPlan[] {
-  return [...plans].sort((a, b) => getPricePerGB(a) - getPricePerGB(b))
+  return [...plans]
+    .filter((p) => {
+      const gb = parseDataSizeGB(p.datasize)
+      return gb > 0 && gb <= 20
+    })
+    .sort((a, b) => getPricePerGB(a) - getPricePerGB(b))
 }
 
 export function getPlansForTab(plans: DataPlan[], tab: PlanTabId): DataPlan[] {

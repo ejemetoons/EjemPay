@@ -184,7 +184,7 @@ export default function BuyDataPage() {
               className="flex gap-1 overflow-x-auto pb-2 scrollbar-thin -mx-1 px-1"
             >
               {DATA_TABS.map((tab) => {
-                const planCount = tab.id === "hot" ? plans.length : getPlansForTab(plans, tab.id).length
+                const planCount = tab.id === "hot" ? getSortedPlans(plans).length : getPlansForTab(plans, tab.id).length
                 return (
                   <button
                     key={tab.id}
