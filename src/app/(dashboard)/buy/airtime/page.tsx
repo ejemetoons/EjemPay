@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { NetworkBadge } from "@/components/ui/network-logo"
+import { NetworkSelector } from "@/components/ui/network-selector"
 import { detectNetwork, getNetworkName } from "@/lib/network-detector"
 import { calculateServicePrice } from "@/lib/pricing"
 import { formatCurrencyShort, isValidPhone } from "@/lib/utils"
@@ -18,11 +19,32 @@ export default function BuyAirtimePage() {
   const [phone, setPhone] = useState("")
   const [amount, setAmount] = useState("")
   const [loading, setLoading] = useState(false)
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
+  const [manualOverride, setManualOverride] = useState(false)
   const { user } = useAuthStore()
   const { balance, setBalance } = useWalletStore()
   const { openPinModal, addToast } = useUiStore()
 
-  const network = detectNetwork(phone)
+  const autoNetwork = detectNetwork(phone)
+  const network = manualOverride ? selectedNetwork : autoNetwork
+
+  const handleNetworkSelect = (net: string) => {
+    setSelectedNetwork(net)
+    setManualOverride(true)
+  }
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value)
+    const detected = detectNetwork(value)
+    if (detected && !manualOverride) {
+      setSelectedNetwork(detected)
+    }
+    if (!value) {
+      setManualOverride(false)
+      setSelectedNetwork(null)
+    }
+  }
+
   const apiCost = Number(amount) || 0
   const price = calculateServicePrice(apiCost, "airtime", user?.tier || "standard")
 
@@ -106,7 +128,7 @@ export default function BuyAirtimePage() {
             type="tel"
             placeholder="08012345678"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => handlePhoneChange(e.target.value)}
             icon={<Phone className="w-4 h-4" />}
             required
           />
@@ -117,10 +139,16 @@ export default function BuyAirtimePage() {
             </motion.div>
           )}
 
+          <NetworkSelector
+            selected={selectedNetwork}
+            onSelect={handleNetworkSelect}
+            autoDetected={!!autoNetwork && !manualOverride}
+          />
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount (₦)</label>
-            <div className="grid grid-cols-5 gap-2 mb-3">
-              {[50, 100, 200, 500, 1000].map((preset) => (
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {[100, 200, 500, 1000].map((preset) => (
                 <button
                   key={preset}
                   type="button"
@@ -141,7 +169,7 @@ export default function BuyAirtimePage() {
               placeholder="Or enter custom amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              min="50"
+              min="100"
             />
           </div>
 
@@ -163,7 +191,7 @@ export default function BuyAirtimePage() {
               type="submit"
               className="w-full"
               size="lg"
-              disabled={!isValidPhone(phone) || !amount || loading}
+              disabled={!isValidPhone(phone) || !amount || loading || !network}
               isLoading={loading}
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Buy Airtime"}

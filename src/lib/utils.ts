@@ -71,6 +71,7 @@ export function getTypeLabel(type: string): string {
     cable: "Cable TV",
     electricity: "Electricity",
     fund_wallet: "Wallet Funding",
+    withdrawal: "Withdrawal",
     upgrade: "Reseller Upgrade",
     exam_pin: "Exam PIN",
   }

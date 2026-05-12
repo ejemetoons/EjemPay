@@ -15,6 +15,7 @@ import {
   Wallet,
   ArrowUpRight,
   ArrowDownLeft,
+  ArrowUpFromLine,
   Clock,
   Eye,
   EyeOff,
@@ -221,6 +222,8 @@ export default function DashboardPage() {
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${getStatusColor(txn.status)}`}>
                       {txn.type === "fund_wallet" ? (
                         <ArrowDownLeft className="w-4 h-4" />
+                      ) : txn.type === "withdrawal" ? (
+                        <ArrowUpFromLine className="w-4 h-4" />
                       ) : (
                         <ArrowUpRight className="w-4 h-4" />
                       )}

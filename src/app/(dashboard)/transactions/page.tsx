@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { createClient } from "@/lib/supabase/client"
 import { Card } from "@/components/ui/card"
 import { formatCurrencyShort, formatDate, getTypeLabel, getStatusColor } from "@/lib/utils"
-import { ArrowUpRight, ArrowDownLeft, Clock, Search } from "lucide-react"
+import { ArrowUpRight, ArrowDownLeft, ArrowUpFromLine, Clock, Search } from "lucide-react"
 import { motion } from "framer-motion"
 
 interface Transaction {
@@ -58,6 +58,7 @@ export default function TransactionsPage() {
     { label: "Cable", value: "cable" },
     { label: "Electricity", value: "electricity" },
     { label: "Funding", value: "fund_wallet" },
+    { label: "Withdrawal", value: "withdrawal" },
   ]
 
   return (
@@ -117,6 +118,8 @@ export default function TransactionsPage() {
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getStatusColor(txn.status)}`}>
                     {txn.type === "fund_wallet" ? (
                       <ArrowDownLeft className="w-6 h-6" />
+                    ) : txn.type === "withdrawal" ? (
+                      <ArrowUpFromLine className="w-6 h-6" />
                     ) : (
                       <ArrowUpRight className="w-6 h-6" />
                     )}

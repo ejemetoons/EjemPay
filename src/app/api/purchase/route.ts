@@ -13,6 +13,8 @@ const SERVICE_PATHS: Record<string, string> = {
   electricity: "/bill",
 }
 
+const ALLOWED_SERVICES = ["airtime", "data", "cable", "electricity", "withdrawal"]
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
 
     const { service, userPrice, providerCost, beneficiary, apiParams, details } = await req.json()
 
-    if (!service || !userPrice || !apiParams || !SERVICE_PATHS[service]) {
+    if (!service || !userPrice || !apiParams || (!SERVICE_PATHS[service] && !ALLOWED_SERVICES.includes(service))) {
       return NextResponse.json({ error: "Invalid request parameters" }, { status: 400 })
     }
 

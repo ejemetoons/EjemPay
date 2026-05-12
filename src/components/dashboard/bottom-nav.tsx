@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Smartphone, Zap, Wallet, User } from "lucide-react"
+import { LayoutDashboard, Smartphone, Zap, ArrowUpFromLine, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
   { label: "Buy", href: "/buy/airtime", icon: Smartphone },
   { label: "Pay", href: "/pay/cable", icon: Zap },
-  { label: "Wallet", href: "/fund-wallet", icon: Wallet },
+  { label: "Withdraw", href: "/withdraw", icon: ArrowUpFromLine },
   { label: "Profile", href: "/settings", icon: User },
 ]
 
@@ -20,7 +20,7 @@ export function BottomNav() {
     if (href === "/dashboard") return pathname === "/dashboard"
     if (href === "/buy/airtime") return pathname.startsWith("/buy")
     if (href === "/pay/cable") return pathname.startsWith("/pay")
-    if (href === "/fund-wallet") return pathname.startsWith("/fund-wallet")
+    if (href === "/withdraw") return pathname.startsWith("/withdraw")
     if (href === "/settings") return pathname.startsWith("/settings") || pathname.startsWith("/transactions")
     return false
   }

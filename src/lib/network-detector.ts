@@ -1,16 +1,17 @@
 const networkPrefixes: Record<string, string> = {
+  "07025": "mtn",
+  "07026": "mtn",
   "0702": "mtn",
   "0703": "mtn",
   "0704": "mtn",
-  "0705": "mtn",
   "0706": "mtn",
+  "0707": "mtn",
   "0803": "mtn",
   "0806": "mtn",
   "0810": "mtn",
   "0813": "mtn",
   "0814": "mtn",
   "0816": "mtn",
-  "0817": "mtn",
   "0903": "mtn",
   "0906": "mtn",
   "0913": "mtn",
@@ -24,15 +25,17 @@ const networkPrefixes: Record<string, string> = {
   "0902": "airtel",
   "0904": "airtel",
   "0907": "airtel",
+  "0911": "airtel",
   "0912": "airtel",
+  "0705": "glo",
   "0805": "glo",
   "0807": "glo",
   "0811": "glo",
   "0815": "glo",
   "0905": "glo",
   "0915": "glo",
-  "0709": "9mobile",
   "0809": "9mobile",
+  "0817": "9mobile",
   "0818": "9mobile",
   "0908": "9mobile",
   "0909": "9mobile",
@@ -59,11 +62,19 @@ const networkLogos: Record<string, string> = {
   "9mobile": "9",
 }
 
+const sortedPrefixes = Object.keys(networkPrefixes).sort((a, b) => b.length - a.length)
+
+export const NETWORKS = ["mtn", "airtel", "glo", "9mobile"] as const
+
 export function detectNetwork(phone: string): string | null {
   const cleaned = phone.replace(/\s/g, "")
-  const prefix = cleaned.length >= 4 ? cleaned.slice(0, 4) : null
-  if (!prefix) return null
-  return networkPrefixes[prefix] || null
+  if (cleaned.length < 4) return null
+  for (const prefix of sortedPrefixes) {
+    if (cleaned.startsWith(prefix)) {
+      return networkPrefixes[prefix]
+    }
+  }
+  return null
 }
 
 export function getNetworkName(network: string | null): string {

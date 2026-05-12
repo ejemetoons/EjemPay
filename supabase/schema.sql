@@ -57,7 +57,7 @@ CREATE POLICY "Users can insert own wallet"
 CREATE TABLE transactions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  type TEXT CHECK (type IN ('airtime', 'data', 'cable', 'electricity', 'fund_wallet', 'upgrade', 'exam_pin')),
+  type TEXT CHECK (type IN ('airtime', 'data', 'cable', 'electricity', 'fund_wallet', 'withdrawal', 'upgrade', 'exam_pin')),
   amount NUMERIC NOT NULL,
   fee NUMERIC DEFAULT 0,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),

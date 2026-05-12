@@ -10,6 +10,7 @@ import {
   Tv,
   Zap,
   Wallet,
+  ArrowUpFromLine,
   History,
   Settings,
   LogOut,
@@ -29,6 +30,7 @@ const navItems = [
   { label: "Pay Cable TV", href: "/pay/cable", icon: Tv },
   { label: "Pay Electricity", href: "/pay/electricity", icon: Zap },
   { label: "Fund Wallet", href: "/fund-wallet", icon: Wallet },
+  { label: "Withdraw", href: "/withdraw", icon: ArrowUpFromLine },
   { label: "Transactions", href: "/transactions", icon: History },
   { label: "Settings", href: "/settings", icon: Settings },
 ]

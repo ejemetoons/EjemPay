@@ -1,6 +1,10 @@
 export type Tier = "standard" | "reseller"
 export type ServiceType = "airtime" | "data" | "cable" | "electricity" | "exam_pin"
 
+export function calculateWithdrawalFee(amount: number): number {
+  return 50
+}
+
 export function calculateServicePrice(
   apiCost: number,
   serviceType: ServiceType,
@@ -23,7 +27,7 @@ export function calculateServicePrice(
 
 export function calculateTopUpFee(amount: number): number {
   const squadFee = amount * 0.015
-  const minProfit = 20
+  const minProfit = 30
   const calculatedFee = squadFee + minProfit
   return Math.max(50, Math.ceil(calculatedFee))
 }
