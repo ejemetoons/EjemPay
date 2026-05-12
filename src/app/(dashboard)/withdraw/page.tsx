@@ -9,7 +9,7 @@ import { formatCurrencyShort, generateRequestId } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { Loader2, Landmark, Banknote, ArrowUpFromLine, Info, CheckCircle, Wallet } from "lucide-react"
+import { Loader2, Landmark, Banknote, ArrowUpFromLine, CheckCircle, Wallet } from "lucide-react"
 import { motion } from "framer-motion"
 
 interface Bank {
@@ -149,7 +149,7 @@ export default function WithdrawPage() {
 
   if (success) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
         <Card>
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
             <div className="relative">
@@ -158,7 +158,7 @@ export default function WithdrawPage() {
                 <CheckCircle className="w-10 h-10 text-on-secondary-container" />
               </div>
             </div>
-            <p className="text-h2 font-h2 text-primary text-center">Transaction Successful</p>
+            <p className="text-h2 font-bold text-on-surface text-center">Transaction Successful</p>
             <p className="text-body-sm text-on-surface-variant text-center max-w-sm">
               {formatCurrencyShort(numAmount)} sent to {bankName} ({accountNumber}). Funds will reflect shortly.
             </p>
@@ -179,138 +179,134 @@ export default function WithdrawPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-h2 font-h2 text-primary">Withdraw Funds</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+      <div>
+        <h2 className="text-h2 font-bold text-on-surface">Withdraw Funds</h2>
         <p className="text-body-sm text-on-surface-variant">Transfer your wallet balance to your bank account.</p>
       </div>
 
-      <Card>
-        <div className="space-y-5">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary-container to-primary p-4 shadow-[0_4px_12px_rgba(91,45,142,0.15)]">
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-            <div className="relative z-10 flex items-center justify-between">
-              <div>
-                <p className="text-purple-200 text-body-sm font-medium">Available Balance</p>
-                <h3 className="text-white text-h3 font-bold mt-1">{formatCurrencyShort(balance)}</h3>
-              </div>
-              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="w-1 h-6 bg-secondary-container rounded-full" />
-            <h3 className="text-h3 font-h3 text-primary">Transaction Details</h3>
-          </div>
-
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary-container to-primary rounded-2xl p-5 shadow-[0_4px_12px_rgba(91,45,142,0.15)]">
+        <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+        <div className="relative z-10 flex items-center justify-between">
           <div>
-            <label className="text-label-caps text-on-surface-variant ml-1 mb-1 block">SELECT BANK</label>
-            {loadingBanks ? (
-              <div className="flex items-center gap-2 text-sm text-on-surface-variant h-14 px-4 bg-surface-container-low rounded-xl border border-outline-variant">
-                <Loader2 className="w-4 h-4 animate-spin" /> Loading banks...
-              </div>
-            ) : (
-              <div className="relative">
-                <select
-                  value={bankCode}
-                  onChange={(e) => handleBankChange(e.target.value)}
-                  className="w-full h-14 pl-12 pr-10 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all appearance-none text-body-md text-on-surface"
-                >
-                  <option value="">Choose your bank</option>
-                  {banks.map((b) => (
-                    <option key={b.code} value={b.code}>{b.name}</option>
-                  ))}
-                </select>
-                <Landmark className="absolute left-4 top-4 w-5 h-5 text-outline pointer-events-none" />
-                <span className="absolute right-4 top-4 text-outline pointer-events-none text-lg">⌄</span>
-              </div>
-            )}
+            <p className="text-purple-200 text-body-sm">Available Balance</p>
+            <h3 className="text-white text-h3 font-bold mt-1">{formatCurrencyShort(balance)}</h3>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-label-caps text-on-surface-variant ml-1 mb-1 block">ACCOUNT NUMBER</label>
-            <div className="relative">
-              <input
-                type="tel"
-                placeholder="0123456789"
-                maxLength={10}
-                value={accountNumber}
-                onChange={(e) => {
-                  setAccountNumber(e.target.value.replace(/\D/g, ""))
-                  setAccountName("")
-                }}
-                className="w-full h-14 pl-12 pr-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all text-body-md text-on-surface placeholder:text-outline"
-              />
-              <span className="absolute left-4 top-4 text-outline pointer-events-none text-lg">#</span>
-            </div>
-            {verifyingAccount && (
-              <div className="flex items-center gap-1.5 text-sm text-primary mt-1">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying account...
-              </div>
-            )}
-            {accountName && !verifyingAccount && (
-              <div className={`flex items-center gap-2 h-12 px-4 rounded-xl mt-1 ${unverified ? "bg-amber-50 border border-amber-200" : "bg-purple-50/50 border border-purple-100"}`}>
-                <div className={`w-2 h-2 rounded-full ${unverified ? "bg-amber-400" : "bg-secondary"}`} />
-                <span className={`font-bold text-body-md ${unverified ? "text-amber-700" : "text-secondary"}`}>
-                  {unverified ? `${accountName} (Unverified)` : accountName}
-                </span>
-              </div>
-            )}
+          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
+            <Wallet className="w-5 h-5 text-white" />
           </div>
-
-          <Input
-            label="Amount"
-            type="number"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            icon={<Banknote className="w-4 h-4" />}
-            min="1000"
-          />
-
-          {numAmount >= 1000 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="bg-surface-container-high rounded-xl p-4 border border-outline-variant/30 border-dashed space-y-2"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Amount to receive</span>
-                <span className="font-bold text-secondary">{formatCurrencyShort(numAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Service fee</span>
-                <span className="font-medium text-on-surface-variant">- {formatCurrencyShort(fee)}</span>
-              </div>
-              <div className="pt-2 border-t border-outline-variant/30 flex justify-between text-sm font-bold">
-                <span className="text-on-surface">Total deducted from wallet</span>
-                <span className="text-primary">{formatCurrencyShort(totalDeduction)}</span>
-              </div>
-              {balance < totalDeduction && (
-                <p className="text-xs text-error mt-1">Insufficient balance</p>
-              )}
-            </motion.div>
-          )}
-
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={handleWithdraw}
-              className="w-full"
-              size="lg"
-              disabled={!accountName || !accountNumber || numAmount < 1000 || loading || balance < totalDeduction}
-              isLoading={loading}
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <><ArrowUpFromLine className="w-5 h-5 mr-2" /> Continue</>
-              )}
-            </Button>
-          </motion.div>
         </div>
-      </Card>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-1 h-6 bg-secondary-container rounded-full" />
+        <h3 className="text-h3 font-semibold text-primary">Transaction Details</h3>
+      </div>
+
+      <div>
+        <label className="text-label-caps text-on-surface-variant mb-1 ml-1 block">SELECT BANK</label>
+        {loadingBanks ? (
+          <div className="flex items-center gap-2 text-sm text-on-surface-variant h-14 px-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading banks...
+          </div>
+        ) : (
+          <div className="relative">
+            <select
+              value={bankCode}
+              onChange={(e) => handleBankChange(e.target.value)}
+              className="w-full h-14 pl-12 pr-10 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all appearance-none text-body-md text-on-surface"
+            >
+              <option value="">Choose your bank</option>
+              {banks.map((b) => (
+                <option key={b.code} value={b.code}>{b.name}</option>
+              ))}
+            </select>
+            <Landmark className="absolute left-4 top-4 w-5 h-5 text-outline pointer-events-none" />
+            <span className="absolute right-4 top-4 text-outline pointer-events-none text-lg">⌄</span>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-label-caps text-on-surface-variant mb-1 ml-1 block">ACCOUNT NUMBER</label>
+        <div className="relative">
+          <input
+            type="tel"
+            placeholder="0123456789"
+            maxLength={10}
+            value={accountNumber}
+            onChange={(e) => {
+              setAccountNumber(e.target.value.replace(/\D/g, ""))
+              setAccountName("")
+            }}
+            className="w-full h-14 pl-12 pr-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary-container focus:border-secondary transition-all text-body-md text-on-surface placeholder:text-outline"
+          />
+          <span className="absolute left-4 top-4 text-outline pointer-events-none text-lg">#</span>
+        </div>
+        {verifyingAccount && (
+          <div className="flex items-center gap-1.5 text-sm text-primary mt-1">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying account...
+          </div>
+        )}
+        {accountName && !verifyingAccount && (
+          <div className={`flex items-center gap-2 h-12 px-4 rounded-xl mt-1 ${unverified ? "bg-amber-50 border border-amber-200" : "bg-purple-50/50 border border-purple-100"}`}>
+            <div className={`w-2 h-2 rounded-full ${unverified ? "bg-amber-400" : "bg-secondary"}`} />
+            <span className={`font-bold text-body-md ${unverified ? "text-amber-700" : "text-secondary"}`}>
+              {unverified ? `${accountName} (Unverified)` : accountName}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <Input
+        label="Amount"
+        type="number"
+        placeholder="0.00"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        icon={<Banknote className="w-4 h-4" />}
+        min="1000"
+      />
+
+      {numAmount >= 1000 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-surface-container-high rounded-2xl p-5 border border-outline-variant/30 border-dashed space-y-3"
+        >
+          <div className="flex justify-between text-sm">
+            <span className="text-on-surface-variant">Amount to receive</span>
+            <span className="text-secondary font-bold">{formatCurrencyShort(numAmount)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-on-surface-variant">Service fee</span>
+            <span className="text-on-surface-variant">- {formatCurrencyShort(fee)}</span>
+          </div>
+          <div className="pt-3 border-t border-outline-variant/30 flex justify-between text-sm">
+            <span className="text-on-surface">Total deducted from wallet</span>
+            <span className="text-primary font-bold">{formatCurrencyShort(totalDeduction)}</span>
+          </div>
+          {balance < totalDeduction && (
+            <p className="text-xs text-error mt-1">Insufficient balance</p>
+          )}
+        </motion.div>
+      )}
+
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handleWithdraw}
+          className="w-full"
+          size="lg"
+          disabled={!accountName || !accountNumber || numAmount < 1000 || loading || balance < totalDeduction}
+          isLoading={loading}
+        >
+          {loading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <><ArrowUpFromLine className="w-5 h-5 mr-2" /> Continue</>
+          )}
+        </Button>
+      </motion.div>
 
       <div className="flex justify-center items-center gap-2 py-4">
         <span className="text-secondary text-sm">✓</span>

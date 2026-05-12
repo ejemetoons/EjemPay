@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { calculateTopUpFee, getAmountToReceive } from "@/lib/pricing"
@@ -9,17 +8,17 @@ import { formatCurrencyShort, generateRequestId } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useWalletStore } from "@/store/useWalletStore"
 import { useUiStore } from "@/store/useUiStore"
-import { Loader2, Wallet, Info, CheckCircle, XCircle } from "lucide-react"
+import { Loader2, Wallet, CheckCircle, XCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { motion } from "framer-motion"
 
-const quickAmounts = [1000, 2000, 5000, 10000, 20000, 50000]
+const quickAmounts = [1000, 2000, 5000, 10000]
 
 export default function FundWalletPage() {
   const [amount, setAmount] = useState("")
   const [loading, setLoading] = useState(false)
   const { user } = useAuthStore()
-  const { setBalance } = useWalletStore()
+  const { balance, setBalance } = useWalletStore()
   const { addToast } = useUiStore()
   const supabase = createClient()
 
@@ -126,22 +125,22 @@ export default function FundWalletPage() {
 
   if (verifying) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-        <Card glass>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-4">
+        <div className="bg-surface-container-high rounded-2xl p-8">
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-lg font-medium text-on-surface">Verifying your payment...</p>
             <p className="text-sm text-on-surface-variant">Please wait while we confirm your transaction.</p>
           </div>
-        </Card>
+        </div>
       </motion.div>
     )
   }
 
   if (verifyResult.status) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-        <Card glass>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-4">
+        <div className="bg-surface-container-high rounded-2xl p-8">
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
             {verifyResult.status === "success" ? (
               <CheckCircle className="w-16 h-16 text-green-500" />
@@ -156,94 +155,111 @@ export default function FundWalletPage() {
               Fund Again
             </Button>
           </div>
-        </Card>
+        </div>
       </motion.div>
     )
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <div className="mb-6">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-4 space-y-5">
+      <div>
         <h2 className="text-h2 font-h2 text-primary">Fund Wallet</h2>
         <p className="text-body-sm text-on-surface-variant">Add money to your wallet securely.</p>
       </div>
 
-      <Card glass>
-        <div className="space-y-5">
-          <div>
-            <label className="block text-label-caps text-on-surface-variant mb-2 ml-1">QUICK AMOUNTS</label>
-            <div className="grid grid-cols-3 gap-2">
-              {quickAmounts.map((a) => (
-                <button
-                  key={a}
-                  onClick={() => setAmount(String(a))}
-                  className={`p-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
-                    amount === String(a)
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
-                  }`}
-                >
-                  {formatCurrencyShort(a)}
-                </button>
-              ))}
-            </div>
+      <div className="bg-gradient-to-br from-primary-container to-primary rounded-[2rem] p-6 shadow-[0_12px_24px_rgba(91,45,142,0.15)] relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+        <div className="relative z-10 space-y-4">
+          <p className="text-sm text-white/80">Available Balance</p>
+          <p className="text-4xl font-bold text-white">{formatCurrencyShort(balance ?? 0)}</p>
+          <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5 text-xs font-medium text-white">
+            Tier 2 Agent Account
           </div>
-
-          <Input
-            label="Amount (₦)"
-            type="number"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            icon={<Wallet className="w-4 h-4" />}
-            required
-            min="100"
-          />
-
-          {numAmount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="bg-surface-container rounded-xl p-4 space-y-2"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You pay</span>
-                <span className="font-semibold text-on-surface">{formatCurrencyShort(numAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Processing fee</span>
-                <span className="text-error">-{formatCurrencyShort(fee)}</span>
-              </div>
-              <div className="border-t border-outline-variant/30 pt-2 flex justify-between">
-                <span className="font-semibold text-on-surface">You receive</span>
-                <span className="font-bold text-lg text-secondary">{formatCurrencyShort(youReceive)}</span>
-              </div>
-            </motion.div>
-          )}
-
-          <div className="bg-surface-container rounded-xl p-4 flex gap-3">
-            <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-primary font-medium">Secure Payment</p>
-              <p className="text-xs text-on-surface-variant mt-1">
-                Payments are processed securely via Squad. Your wallet will be credited instantly after payment.
-              </p>
-            </div>
-          </div>
-
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={handleFund}
-              className="w-full"
-              size="lg"
-              disabled={numAmount < 100 || loading}
-              isLoading={loading}
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Fund Wallet"}
-            </Button>
-          </motion.div>
         </div>
-      </Card>
+      </div>
+
+      <Input
+        label="Amount"
+        type="number"
+        placeholder="0.00"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        icon={<Wallet className="w-5 h-5" />}
+        required
+        min="100"
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        {quickAmounts.map((a) => (
+          <button
+            key={a}
+            onClick={() => setAmount(String(a))}
+            className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+              amount === String(a)
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-outline-variant bg-white hover:border-primary text-on-surface"
+            }`}
+          >
+            {formatCurrencyShort(a)}
+          </button>
+        ))}
+      </div>
+
+      {numAmount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="bg-surface-container-high rounded-2xl p-5 space-y-3"
+        >
+          <div className="flex justify-between text-sm">
+            <span className="text-on-surface-variant">Transaction Fee</span>
+            <span className="font-medium text-on-surface">{formatCurrencyShort(fee)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-on-surface-variant">You will receive</span>
+            <span className="font-semibold text-secondary">{formatCurrencyShort(youReceive)}</span>
+          </div>
+          <div className="border-t border-outline-variant/30 pt-3 flex justify-between">
+            <span className="font-semibold text-on-surface">Total</span>
+            <span className="font-bold text-lg text-on-surface">{formatCurrencyShort(numAmount)}</span>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="space-y-3">
+        <label className="block text-label-caps text-on-surface-variant">Payment Method</label>
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 cursor-pointer">
+            <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-on-surface">Card Payment</p>
+              <p className="text-xs text-on-surface-variant">Pay with debit or credit card</p>
+            </div>
+          </label>
+          <label className="flex items-center gap-3 p-4 rounded-xl border-2 border-outline-variant bg-white cursor-pointer opacity-50">
+            <div className="w-5 h-5 rounded-full border-2 border-outline-variant" />
+            <div>
+              <p className="font-medium text-on-surface">Bank Transfer</p>
+              <p className="text-xs text-on-surface-variant">Coming soon</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handleFund}
+          className="w-full"
+          size="lg"
+          disabled={numAmount < 100 || loading}
+          isLoading={loading}
+        >
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue to Payment"}
+        </Button>
+      </motion.div>
     </motion.div>
   )
 }

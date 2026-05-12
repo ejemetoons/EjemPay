@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Card } from "@/components/ui/card"
+import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { NetworkBadge } from "@/components/ui/network-logo"
-import { NetworkSelector } from "@/components/ui/network-selector"
-import { detectNetwork, getNetworkName } from "@/lib/network-detector"
+import { NETWORKS, detectNetwork, getNetworkName, getNetworkColor, getNetworkLogo } from "@/lib/network-detector"
 import { calculateServicePrice } from "@/lib/pricing"
 import { formatCurrencyShort, isValidPhone } from "@/lib/utils"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -112,96 +111,138 @@ export default function BuyAirtimePage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="mb-6">
-        <h2 className="text-h2 font-h2 text-primary">Buy Airtime</h2>
+        <h1 className="text-h2 font-bold text-on-surface">Buy Airtime</h1>
         <p className="text-body-sm text-on-surface-variant">Top up any Nigerian number instantly.</p>
       </div>
 
-      <Card>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            handlePurchase()
-          }}
-          className="space-y-5"
-        >
-          <Input
-            label="Phone Number"
-            type="tel"
-            placeholder="0801 234 5678"
-            value={phone}
-            onChange={(e) => handlePhoneChange(e.target.value)}
-            icon={<Phone className="w-4 h-4" />}
-            required
-          />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handlePurchase()
+        }}
+        className="space-y-5"
+      >
+        <Input
+          label="Phone Number"
+          type="tel"
+          placeholder="0801 234 5678"
+          value={phone}
+          onChange={(e) => handlePhoneChange(e.target.value)}
+          icon={<Phone className="w-4 h-4" />}
+          required
+        />
 
-          {network && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-              <NetworkBadge network={network} />
-            </motion.div>
-          )}
+        {network && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+            <NetworkBadge network={network} />
+          </motion.div>
+        )}
 
-          <NetworkSelector
-            selected={selectedNetwork}
-            onSelect={handleNetworkSelect}
-            autoDetected={!!autoNetwork && !manualOverride}
-          />
-
-          <div>
-            <label className="block text-label-caps text-on-surface-variant mb-2 ml-1">QUICK AMOUNTS</label>
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {[100, 200, 500, 1000].map((preset) => (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-h3 font-semibold text-on-surface">Select Network</h3>
+            {autoNetwork && !manualOverride && (
+              <span className="text-[10px] font-bold text-secondary uppercase bg-secondary-container/10 px-2 py-0.5 rounded-full">
+                Auto
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {NETWORKS.map((net) => {
+              const isSelected = network === net
+              const color = getNetworkColor(net)
+              const logo = getNetworkLogo(net)
+              const name = getNetworkName(net)
+              return (
                 <button
-                  key={preset}
+                  key={net}
                   type="button"
-                  onClick={() => setAmount(String(preset))}
-                  className={`p-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
-                    Number(amount) === preset
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
+                  onClick={() => handleNetworkSelect(net)}
+                  className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all ${
+                    isSelected
+                      ? "bg-surface-container border-primary"
+                      : "bg-white border-outline-variant hover:border-primary"
                   }`}
                 >
-                  ₦{preset}
+                  <div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center p-2 shadow-sm"
+                    style={{ backgroundColor: color }}
+                  >
+                    {logo ? (
+                      <Image src={logo} alt={name} width={32} height={32} className="object-contain" />
+                    ) : (
+                      <span className="text-sm font-bold text-white">{name[0]}</span>
+                    )}
+                  </div>
+                  <span className={`text-[10px] uppercase font-bold tracking-wide ${
+                    isSelected ? "text-primary" : "text-on-surface-variant"
+                  }`}>
+                    {name}
+                  </span>
+                  {isSelected && autoNetwork && !manualOverride && (
+                    <span className="text-[8px] font-bold text-secondary uppercase -mt-1">auto</span>
+                  )}
                 </button>
-              ))}
-            </div>
-            <Input
-              label="Custom Amount"
-              type="number"
-              placeholder="Enter amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min="100"
-            />
+              )
+            })}
           </div>
+        </div>
 
-          {price > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-surface-container rounded-xl p-4"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You pay</span>
-                <span className="font-bold text-lg text-primary">{formatCurrencyShort(price)}</span>
-              </div>
-            </motion.div>
-          )}
+        <div>
+          <p className="text-label-caps text-on-surface-variant mb-2 ml-1">QUICK AMOUNTS</p>
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            {[100, 200, 500, 1000].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setAmount(String(preset))}
+                className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                  Number(amount) === preset
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-outline-variant bg-white hover:border-primary text-on-surface"
+                }`}
+              >
+                ₦{preset}
+              </button>
+            ))}
+          </div>
+          <Input
+            label="Custom Amount"
+            type="number"
+            placeholder="Enter amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            min="100"
+          />
+        </div>
 
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={!isValidPhone(phone) || !amount || loading || !network}
-              isLoading={loading}
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Buy Airtime"}
-            </Button>
+        {price > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-container rounded-2xl p-5"
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-on-surface-variant">You pay</span>
+              <span className="font-bold text-2xl text-primary">{formatCurrencyShort(price)}</span>
+            </div>
           </motion.div>
-        </form>
-      </Card>
+        )}
+
+        <motion.div whileTap={{ scale: 0.98 }}>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={!isValidPhone(phone) || !amount || loading || !network}
+            isLoading={loading}
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Buy Airtime"}
+          </Button>
+        </motion.div>
+      </form>
     </motion.div>
   )
 }

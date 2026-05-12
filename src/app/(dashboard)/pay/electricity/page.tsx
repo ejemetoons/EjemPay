@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -18,6 +17,8 @@ interface DisCo {
   abb: string
   apidiscount: string
 }
+
+const quickAmounts = [500, 1000, 2000, 5000]
 
 export default function ElectricityPage() {
   const [discos, setDiscos] = useState<DisCo[]>([])
@@ -146,146 +147,163 @@ export default function ElectricityPage() {
   const canSubmit = selectedDisco && meterNumber.trim() && meterValidated && amount && !validatingMeter
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-on-surface mb-6">Pay Electricity</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-4 space-y-5">
+      <h2 className="text-h2 font-h2 text-primary">Electricity Bill</h2>
 
-      <Card glass>
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-2">Distribution Company</label>
-            {loadingDiscos ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              </div>
-            ) : (
-              <select
-                value={selectedDisco}
-                onChange={(e) => setSelectedDisco(e.target.value)}
-                className="w-full h-14 px-4 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary-container transition-all"
-              >
-                <option value="">Select DisCo</option>
-                {discos.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name} ({d.abb})</option>
-                ))}
-              </select>
-            )}
+      <div>
+        <label className="block text-label-caps text-on-surface-variant mb-3 ml-1">Distribution Company</label>
+        {loadingDiscos ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
           </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {discos.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDisco(d.id)}
+                className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                  selectedDisco === d.id
+                    ? "border-primary bg-surface-container text-primary"
+                    : "border-outline-variant bg-white hover:border-primary text-on-surface"
+                }`}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-2">Meter Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(["prepaid", "postpaid"] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setMeterType(type)}
-                  className={`p-3 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
-                    meterType === type
-                      ? "border-primary bg-surface-container text-primary"
-                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
+      <div>
+        <label className="block text-label-caps text-on-surface-variant mb-3 ml-1">Meter Type</label>
+        <div className="flex gap-2">
+          {(["prepaid", "postpaid"] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setMeterType(type)}
+              className={`flex-1 p-3 rounded-xl border-2 text-sm font-semibold capitalize transition-all ${
+                meterType === type
+                  ? "border-primary bg-surface-container text-primary"
+                  : "border-outline-variant bg-white hover:border-primary text-on-surface"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Input
+          label="Meter Number"
+          placeholder="Enter meter number"
+          value={meterNumber}
+          onChange={(e) => setMeterNumber(e.target.value)}
+          onBlur={validateMeter}
+          icon={<Zap className="w-4 h-4" />}
+        />
+        {validatingMeter && (
+          <div className="flex items-center gap-2 mt-1.5 text-sm text-primary">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Validating meter number...
+          </div>
+        )}
+        {meterValidated && customerName && (
+          <div className="mt-1.5 text-sm text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/30 rounded-xl p-3 border border-green-200 dark:border-green-700">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+              <div>
+                <p className="font-medium">{customerName}</p>
+                {customerAddress && (
+                  <p className="text-green-600 dark:text-green-400 text-xs">{customerAddress}</p>
+                )}
+              </div>
             </div>
           </div>
-
-          <div>
-            <Input
-              label="Meter Number"
-              placeholder="Enter meter number"
-              value={meterNumber}
-              onChange={(e) => setMeterNumber(e.target.value)}
-              onBlur={validateMeter}
-              icon={<Zap className="w-4 h-4" />}
-            />
-            {validatingMeter && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-primary">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Validating meter number...
-              </div>
-            )}
-            {meterValidated && customerName && (
-              <div className="mt-1.5 text-sm text-on-surface space-y-0.5">
-                <div className="flex items-center gap-2 bg-surface-container rounded-xl p-3">
-                  <CheckCircle className="w-4 h-4 text-secondary shrink-0" />
-                  <div>
-                    <p className="font-medium">{customerName}</p>
-                    {customerAddress && (
-                      <p className="text-on-surface-variant text-xs">{customerAddress}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {validationError && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-error">
-                <XCircle className="w-3.5 h-3.5" />
-                {validationError}
-              </div>
-            )}
+        )}
+        {validationError && (
+          <div className="flex items-center gap-2 mt-1.5 text-sm text-error">
+            <XCircle className="w-3.5 h-3.5" />
+            {validationError}
           </div>
+        )}
+      </div>
 
-          <Input
-            label="Amount (₦)"
-            type="number"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
+      <Input
+        label="Amount"
+        type="number"
+        placeholder="0.00"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        required
+      />
 
-          <Input
-            label="Phone Number (for SMS token)"
-            type="tel"
-            placeholder="08012345678"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            icon={<Zap className="w-4 h-4" />}
-          />
+      <div className="grid grid-cols-2 gap-3">
+        {quickAmounts.map((a) => (
+          <button
+            key={a}
+            onClick={() => setAmount(String(a))}
+            className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+              amount === String(a)
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-outline-variant bg-white hover:border-primary text-on-surface"
+            }`}
+          >
+            {formatCurrencyShort(a)}
+          </button>
+        ))}
+      </div>
 
-          {price > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-surface-container rounded-xl p-4"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You pay</span>
-                <span className="font-bold text-lg text-primary">{formatCurrencyShort(price)}</span>
-              </div>
-            </motion.div>
-          )}
+      <Input
+        label="Phone Number (for SMS token)"
+        type="tel"
+        placeholder="08012345678"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        icon={<Zap className="w-4 h-4" />}
+      />
 
-          {token && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-green-50 dark:bg-green-900/30 rounded-xl p-5 border-2 border-green-300 dark:border-green-700"
-            >
-              <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">Electricity Token</p>
-              <p className="text-2xl font-bold text-green-800 dark:text-green-200 tracking-wider text-center select-all">
-                {token}
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
-                Copy this token and use it to recharge your meter
-              </p>
-            </motion.div>
-          )}
+      {price > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-surface-container rounded-2xl p-5"
+        >
+          <div className="flex justify-between items-center">
+            <span className="text-on-surface-variant text-sm">You Pay</span>
+            <span className="font-bold text-xl text-primary">{formatCurrencyShort(price)}</span>
+          </div>
+        </motion.div>
+      )}
 
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={handlePurchase}
-              className="w-full"
-              size="lg"
-              disabled={!canSubmit || loading}
-              isLoading={loading}
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Electricity"}
-            </Button>
-          </motion.div>
-        </div>
-      </Card>
+      {token && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-green-50 dark:bg-green-900/30 rounded-xl p-5 border-2 border-green-300 dark:border-green-700"
+        >
+          <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">Electricity Token</p>
+          <p className="text-2xl font-bold text-green-800 dark:text-green-200 tracking-wider text-center select-all">
+            {token}
+          </p>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+            Copy this token and use it to recharge your meter
+          </p>
+        </motion.div>
+      )}
+
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handlePurchase}
+          className="w-full"
+          size="lg"
+          disabled={!canSubmit || loading}
+          isLoading={loading}
+        >
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Purchase"}
+        </Button>
+      </motion.div>
     </motion.div>
   )
 }

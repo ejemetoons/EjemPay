@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -147,115 +146,120 @@ export default function CablePage() {
   const canSubmit = provider && iuc.trim() && iucValidated && selectedPlan && !validatingIuc
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-on-surface mb-6">Pay Cable TV</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-4 space-y-5">
+      <h2 className="text-h2 font-h2 text-primary">Cable TV</h2>
 
-      <Card glass>
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-2">Cable Provider</label>
-            <div className="grid grid-cols-3 gap-2">
-              {cableProviders.map((p) => (
+      <div>
+        <label className="block text-label-caps text-on-surface-variant mb-3 ml-1">Provider</label>
+        <div className="grid grid-cols-4 gap-3">
+          {cableProviders.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setProvider(p.id)}
+              className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                provider === p.id
+                  ? "border-primary bg-surface-container text-primary"
+                  : "border-outline-variant bg-white hover:border-primary text-on-surface opacity-60"
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Input
+          label="IUC / Smart Card Number"
+          placeholder="Enter IUC number"
+          value={iuc}
+          onChange={(e) => setIuc(e.target.value)}
+          onBlur={validateIuc}
+          icon={<Tv className="w-4 h-4" />}
+        />
+        {validatingIuc && (
+          <div className="flex items-center gap-2 mt-1.5 text-sm text-primary">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Validating IUC number...
+          </div>
+        )}
+        {iucValidated && customerName && (
+          <div className="flex items-center gap-2 mt-1.5 text-sm text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/30 rounded-xl p-3 border border-green-200 dark:border-green-700">
+            <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+            <span className="font-medium">{customerName}</span>
+          </div>
+        )}
+        {validationError && (
+          <div className="flex items-center gap-2 mt-1.5 text-sm text-error">
+            <XCircle className="w-3.5 h-3.5" />
+            {validationError}
+          </div>
+        )}
+      </div>
+
+      {provider && (
+        <div>
+          <label className="block text-label-caps text-on-surface-variant mb-3 ml-1">Select Plan</label>
+          {loadingPlans ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : plans.length === 0 ? (
+            <p className="text-on-surface-variant text-center py-4">No plans available</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+              {plans.map((plan) => (
                 <button
-                  key={p.id}
-                  onClick={() => setProvider(p.id)}
-                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                    provider === p.id
-                      ? "border-primary bg-surface-container text-primary"
-                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
+                  key={plan.id}
+                  onClick={() => setSelectedPlan(plan)}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                    selectedPlan?.id === plan.id
+                      ? "border-primary bg-surface-container"
+                      : "border-outline-variant bg-white hover:border-primary"
                   }`}
                 >
-                  {p.name}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    selectedPlan?.id === plan.id ? "border-primary" : "border-outline-variant"
+                  }`}>
+                    {selectedPlan?.id === plan.id && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-on-surface">{plan.name}</p>
+                    <p className="text-sm text-primary">{formatCurrencyShort(Number(plan.price))}</p>
+                  </div>
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <Input
-              label="IUC / Smart Card Number"
-              placeholder="Enter IUC number"
-              value={iuc}
-              onChange={(e) => setIuc(e.target.value)}
-              onBlur={validateIuc}
-              icon={<Tv className="w-4 h-4" />}
-            />
-            {validatingIuc && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-primary">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Validating IUC number...
-              </div>
-            )}
-            {iucValidated && customerName && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-on-surface bg-surface-container rounded-xl p-3">
-                <CheckCircle className="w-4 h-4 text-secondary shrink-0" />
-                <span className="font-medium">{customerName}</span>
-              </div>
-            )}
-            {validationError && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-error">
-                <XCircle className="w-3.5 h-3.5" />
-                {validationError}
-              </div>
-            )}
-          </div>
-
-          {provider && (
-            <div>
-              <label className="block text-sm font-medium text-on-surface-variant mb-2">Select Plan</label>
-              {loadingPlans ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              ) : plans.length === 0 ? (
-                <p className="text-on-surface-variant text-center py-4">No plans available</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-                  {plans.map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => setSelectedPlan(plan)}
-                      className={`p-3 rounded-xl border-2 text-left transition-all ${
-                        selectedPlan?.id === plan.id
-                          ? "border-primary bg-surface-container"
-                          : "border-outline-variant bg-white hover:border-primary"
-                      }`}
-                    >
-                      <p className="font-medium text-on-surface">{plan.name}</p>
-                      <p className="text-sm text-primary">{formatCurrencyShort(Number(plan.price))}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           )}
-
-          {price > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-surface-container rounded-xl p-4"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You pay</span>
-                <span className="font-bold text-lg text-primary">{formatCurrencyShort(price)}</span>
-              </div>
-            </motion.div>
-          )}
-
-          <motion.div whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={handlePurchase}
-              className="w-full"
-              size="lg"
-              disabled={!canSubmit || loading}
-              isLoading={loading}
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay Cable"}
-            </Button>
-          </motion.div>
         </div>
-      </Card>
+      )}
+
+      {price > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-surface-container rounded-2xl p-5"
+        >
+          <div className="flex justify-between items-center">
+            <span className="text-on-surface-variant text-sm">You Pay</span>
+            <span className="font-bold text-xl text-primary">{formatCurrencyShort(price)}</span>
+          </div>
+        </motion.div>
+      )}
+
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handlePurchase}
+          className="w-full"
+          size="lg"
+          disabled={!canSubmit || loading}
+          isLoading={loading}
+        >
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Proceed to Payment"}
+        </Button>
+      </motion.div>
     </motion.div>
   )
 }
