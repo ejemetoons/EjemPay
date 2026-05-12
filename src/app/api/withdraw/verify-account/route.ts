@@ -36,6 +36,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: "success", accountName: data.data.account_name })
     }
 
+    // If merchant not profiled yet, still allow withdrawal with unverified name
+    if (data.message?.toLowerCase().includes("merchant not found")) {
+      return NextResponse.json({
+        status: "success",
+        accountName: `${accountNumber}`,
+        unverified: true,
+      })
+    }
+
     return NextResponse.json({
       status: "error",
       message: data.message || "Account verification failed. Check the account number and try again.",

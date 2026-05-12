@@ -184,7 +184,7 @@ export default function BuyDataPage() {
           <div>
             <div
               ref={tabBarRef}
-              className="flex gap-1 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1"
+              className="flex gap-1 overflow-x-auto pb-2 no-scrollbar"
             >
               {DATA_TABS.map((tab) => {
                 const planCount = tab.id === "hot" ? getSortedPlans(plans).length : getPlansForTab(plans, tab.id).length
@@ -220,7 +220,7 @@ export default function BuyDataPage() {
                 {network ? `No ${activeTab === "hot" ? "" : activeTab} plans available` : "Enter a phone number or select a network to see plans"}
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-1 gap-2 max-h-[calc(100vh-480px)] min-h-[120px] overflow-y-auto">
                 {tabPlans.map((plan) => {
                   const ppgb = formatPricePerGB(plan)
                   return (
@@ -229,32 +229,32 @@ export default function BuyDataPage() {
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedPlan(plan)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex justify-between items-center ${
+                      className={`p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${
                         selectedPlan?.plan_id === plan.plan_id
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-outline-variant bg-white hover:border-primary hover:shadow-sm"
                       }`}
                     >
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-on-surface">{plan.datasize}</p>
+                          <p className="font-bold text-on-surface truncate">{plan.datasize}</p>
                           {activeTab === "hot" && ppgb && (
-                            <span className="text-[10px] font-bold text-secondary bg-secondary-container/10 px-1.5 py-0.5 rounded">
+                            <span className="shrink-0 text-[10px] font-bold text-secondary bg-secondary-container/10 px-1.5 py-0.5 rounded">
                               {ppgb}
                             </span>
                           )}
                         </div>
-                        <p className="text-body-sm text-on-surface-variant mt-0.5">
+                        <p className="text-body-sm text-on-surface-variant mt-0.5 truncate">
                           {plan.type} &middot; {plan.day} {parseInt(plan.day) === 1 ? "day" : "days"}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-black text-primary">
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <p className="font-black text-primary whitespace-nowrap">
                           {formatCurrencyShort(
                             calculateServicePrice(plan.price, "data", user?.tier || "standard")
                           )}
                         </p>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 ml-auto ${
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                           selectedPlan?.plan_id === plan.plan_id
                             ? "border-primary"
                             : "border-outline-variant"

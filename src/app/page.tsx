@@ -20,17 +20,17 @@ const tiers = [
   {
     name: "Standard",
     price: "Free",
-    data: "API + ₦20",
-    airtime: "API + 3%",
-    features: ["All services available", "Standard pricing", "Transaction history", "24/7 support"],
+    data: "Cheap rates",
+    airtime: "Face value",
+    features: ["All services available", "Affordable data pricing", "Transaction history", "24/7 support"],
     cta: "Get Started",
   },
   {
-    name: "Reseller",
+    name: "Top Seller",
     price: "₦6,500",
-    data: "API + ₦7",
-    airtime: "API + 1%",
-    features: ["All Standard features", "Lowest pricing", "Priority support", "Bulk purchases", "API access"],
+    data: "Discounted prices",
+    airtime: "Discounted + face value",
+    features: ["All Standard features", "Lowest data pricing", "Priority support", "Bulk purchases", "API access"],
     cta: "Upgrade Now",
     popular: true,
   },
@@ -40,58 +40,51 @@ export default function LandingPage() {
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 z-50">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
+      <nav className="fixed top-0 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/50 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold text-primary">
             Ejempay
           </h1>
           <div className="flex items-center gap-4">
             <button
               onClick={toggle}
-              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-xl bg-surface-container border border-outline-variant/50"
             >
-              {theme === "dark" ? <Sun className="w-5 h-5 text-gray-400" /> : <Moon className="w-5 h-5 text-gray-500" />}
+              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
+              <Button variant="secondary" size="sm">Sign In</Button>
             </Link>
             <Link href="/register">
-              <Button>Get Started</Button>
+              <Button size="sm">Get Started</Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-blue-50/30 dark:from-blue-950/20 dark:via-transparent dark:to-blue-950/10 pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <motion.span
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-block px-4 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full mb-6"
-            >
-              Nigeria's Smartest VTU Platform
-            </motion.span>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
-              Instant Airtime, Data & Bills
-              <span className="bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent"> at Best Prices</span>
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="inline-block px-4 py-1.5 bg-surface-container text-primary text-sm font-medium rounded-full mb-6">
+              🇳🇬 Nigeria's Trusted VTU Platform
+            </span>
+            <h1 className="text-4xl md:text-6xl font-bold text-on-surface leading-tight">
+              Buy Airtime, Data &amp; Pay Bills{" "}
+              <span className="text-primary">at Best Prices</span>
             </h1>
-            <p className="text-lg text-gray-500 dark:text-gray-400 mt-6 max-w-2xl mx-auto">
-              Buy airtime, data bundles, pay cable TV and electricity bills instantly. Upgrade to Reseller for the lowest prices in Nigeria.
+            <p className="text-on-surface-variant mt-6 text-lg max-w-2xl mx-auto">
+              The easiest way to top up your phone, buy data bundles, pay for cable TV, electricity, and more. Instant delivery, lowest prices.
             </p>
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div className="flex justify-center gap-4 mt-10">
               <Link href="/register">
                 <Button size="lg">
                   Create Free Account
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
               <Link href="/login">
@@ -99,22 +92,22 @@ export default function LandingPage() {
                   Sign In
                 </Button>
               </Link>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-gray-50 dark:bg-gray-900/50 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-6 bg-surface-container/50">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Everything You Need</h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-3">All your VTU needs in one platform</p>
+            <h2 className="text-3xl font-bold text-on-surface">Why Ejempay?</h2>
+            <p className="text-on-surface-variant mt-3">Everything you need in one place</p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -124,9 +117,9 @@ export default function LandingPage() {
                 viewport={{ once: true }}
               >
                 <Card className="h-full">
-                  <motion.div whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <feature.icon className="w-10 h-10 text-primary mb-4" />
-                  </motion.div>
+                  <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-primary" />
+                  </div>
                   <h3 className="text-lg font-semibold text-on-surface mb-2">{feature.title}</h3>
                   <p className="text-on-surface-variant">{feature.desc}</p>
                 </Card>
@@ -143,8 +136,8 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Simple Pricing</h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-3">Choose the plan that works for you</p>
+            <h2 className="text-3xl font-bold text-on-surface">Simple Pricing</h2>
+            <p className="text-on-surface-variant mt-3">Choose the plan that works for you</p>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-8">
             {tiers.map((tier, i) => (
@@ -168,18 +161,18 @@ export default function LandingPage() {
                   <p className="text-3xl font-bold mt-2 text-on-surface">{tier.price}</p>
                   <div className="mt-6 space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Data pricing</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-200">{tier.data}</span>
+                      <span className="text-on-surface-variant">Data pricing</span>
+                      <span className="font-medium text-on-surface">{tier.data}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Airtime pricing</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-200">{tier.airtime}</span>
+                      <span className="text-on-surface-variant">Airtime pricing</span>
+                      <span className="font-medium text-on-surface">{tier.airtime}</span>
                     </div>
                   </div>
                   <ul className="mt-6 space-y-2">
                     {tier.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="w-4 h-4 text-green-500" />
+                      <li key={f} className="flex items-center gap-2 text-sm text-on-surface-variant">
+                        <Check className="w-4 h-4 text-secondary" />
                         {f}
                       </li>
                     ))}
@@ -196,20 +189,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 relative overflow-hidden">
+      <section className="py-20 px-6 bg-gradient-to-r from-primary to-primary-container relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_60%)]" />
-        <div className="max-w-3xl mx-auto text-center text-white relative">
+        <div className="max-w-3xl mx-auto text-center text-on-primary relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
             <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
-            <p className="text-blue-100 mt-4 text-lg">
+            <p className="text-on-primary/70 mt-4 text-lg">
               Create your free account and start buying airtime, data, and paying bills in seconds.
             </p>
             <Link href="/register">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 mt-6">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 mt-6">
                   Create Free Account
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -219,13 +212,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-8 px-6 border-t border-gray-100 dark:border-gray-800">
+      <footer className="py-8 px-6 border-t border-outline-variant/50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">© 2026 Ejempay. All rights reserved.</p>
-          <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">
-            <Link href="#" className="hover:text-gray-700 dark:hover:text-gray-300">Terms</Link>
-            <Link href="#" className="hover:text-gray-700 dark:hover:text-gray-300">Privacy</Link>
-            <Link href="#" className="hover:text-gray-700 dark:hover:text-gray-300">Support</Link>
+          <p className="text-sm text-on-surface-variant">© 2026 Ejempay. All rights reserved.</p>
+          <div className="flex gap-6 text-sm text-on-surface-variant">
+            <Link href="#" className="hover:text-on-surface transition-colors">Terms</Link>
+            <Link href="#" className="hover:text-on-surface transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-on-surface transition-colors">Support</Link>
           </div>
         </div>
       </footer>

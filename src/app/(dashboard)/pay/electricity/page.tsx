@@ -147,21 +147,21 @@ export default function ElectricityPage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Pay Electricity</h2>
+      <h2 className="text-2xl font-bold text-on-surface mb-6">Pay Electricity</h2>
 
       <Card glass>
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Distribution Company</label>
+            <label className="block text-sm font-medium text-on-surface-variant mb-2">Distribution Company</label>
             {loadingDiscos ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
               </div>
             ) : (
               <select
                 value={selectedDisco}
                 onChange={(e) => setSelectedDisco(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-14 px-4 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary-container transition-all"
               >
                 <option value="">Select DisCo</option>
                 {discos.map((d) => (
@@ -172,7 +172,7 @@ export default function ElectricityPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Meter Type</label>
+            <label className="block text-sm font-medium text-on-surface-variant mb-2">Meter Type</label>
             <div className="grid grid-cols-2 gap-2">
               {(["prepaid", "postpaid"] as const).map((type) => (
                 <button
@@ -180,8 +180,8 @@ export default function ElectricityPage() {
                   onClick={() => setMeterType(type)}
                   className={`p-3 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                     meterType === type
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 text-blue-700 dark:text-blue-300"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-gray-300"
+                      ? "border-primary bg-surface-container text-primary"
+                      : "border-outline-variant bg-white hover:border-primary text-on-surface"
                   }`}
                 >
                   {type}
@@ -200,24 +200,26 @@ export default function ElectricityPage() {
               icon={<Zap className="w-4 h-4" />}
             />
             {validatingMeter && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-blue-600 dark:text-blue-400">
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-primary">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Validating meter number...
               </div>
             )}
             {meterValidated && customerName && (
-              <div className="mt-1.5 text-sm text-green-600 dark:text-green-400 space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  {customerName}
+              <div className="mt-1.5 text-sm text-on-surface space-y-0.5">
+                <div className="flex items-center gap-2 bg-surface-container rounded-xl p-3">
+                  <CheckCircle className="w-4 h-4 text-secondary shrink-0" />
+                  <div>
+                    <p className="font-medium">{customerName}</p>
+                    {customerAddress && (
+                      <p className="text-on-surface-variant text-xs">{customerAddress}</p>
+                    )}
+                  </div>
                 </div>
-                {customerAddress && (
-                  <p className="text-gray-500 dark:text-gray-400 ml-5">{customerAddress}</p>
-                )}
               </div>
             )}
             {validationError && (
-              <div className="flex items-center gap-2 mt-1.5 text-sm text-red-500">
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-error">
                 <XCircle className="w-3.5 h-3.5" />
                 {validationError}
               </div>
@@ -246,11 +248,11 @@ export default function ElectricityPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4"
+              className="bg-surface-container rounded-xl p-4"
             >
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">You pay</span>
-                <span className="font-bold text-lg text-blue-700 dark:text-blue-300">{formatCurrencyShort(price)}</span>
+                <span className="text-on-surface-variant">You pay</span>
+                <span className="font-bold text-lg text-primary">{formatCurrencyShort(price)}</span>
               </div>
             </motion.div>
           )}

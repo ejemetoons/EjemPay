@@ -42,12 +42,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4 transition-colors duration-300">
       <button
         onClick={toggle}
-        className="fixed top-4 right-4 p-2 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 z-50"
+        className="fixed top-4 right-4 p-2 rounded-xl bg-surface-container border border-outline-variant/50 z-50"
       >
-        {theme === "dark" ? <Sun className="w-5 h-5 dark:text-gray-200" /> : <Moon className="w-5 h-5" />}
+        {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
 
       <motion.div
@@ -58,14 +58,14 @@ export default function LoginPage() {
       >
         <div className="text-center mb-8">
           <motion.h1
-            className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent"
+            className="text-3xl font-bold text-primary"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
           >
             Ejempay
           </motion.h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to your account</p>
+          <p className="text-on-surface-variant mt-2">Sign in to your account</p>
         </div>
 
         <Card glass>
@@ -74,7 +74,7 @@ export default function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl"
+                className="bg-error-container text-error text-sm p-3 rounded-xl"
               >
                 {error}
               </motion.div>
@@ -101,11 +101,11 @@ export default function LoginPage() {
             />
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800" />
+              <label className="flex items-center gap-2 text-on-surface-variant">
+                <input type="checkbox" className="rounded border-outline-variant" />
                 Remember me
               </label>
-              <Link href="/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
+              <Link href="/forgot-password" className="text-primary hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -117,9 +117,9 @@ export default function LoginPage() {
             </motion.div>
           </form>
 
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+          <p className="text-center text-sm text-on-surface-variant mt-6">
             Don't have an account?{" "}
-            <Link href="/register" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+            <Link href="/register" className="text-primary font-medium hover:underline">
               Create one
             </Link>
           </p>

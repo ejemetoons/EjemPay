@@ -23,6 +23,7 @@ export default function WithdrawPage() {
   const [bankName, setBankName] = useState("")
   const [accountNumber, setAccountNumber] = useState("")
   const [accountName, setAccountName] = useState("")
+  const [unverified, setUnverified] = useState(false)
   const [amount, setAmount] = useState("")
   const [loading, setLoading] = useState(false)
   const [loadingBanks, setLoadingBanks] = useState(true)
@@ -56,6 +57,7 @@ export default function WithdrawPage() {
     const bank = banks.find((b) => b.code === code)
     setBankName(bank?.name || "")
     setAccountName("")
+    setUnverified(false)
   }
 
   const verifyAccount = useCallback(async () => {
@@ -71,6 +73,7 @@ export default function WithdrawPage() {
       const data = await res.json()
       if (data.status === "success") {
         setAccountName(data.accountName)
+        setUnverified(data.unverified || false)
       } else {
         addToast("error", data.message || "Account verification failed")
       }
@@ -248,9 +251,11 @@ export default function WithdrawPage() {
               </div>
             )}
             {accountName && !verifyingAccount && (
-              <div className="flex items-center gap-2 h-12 px-4 bg-purple-50/50 border border-purple-100 rounded-xl mt-1">
-                <div className="w-2 h-2 rounded-full bg-secondary" />
-                <span className="text-secondary font-bold text-body-md">{accountName}</span>
+              <div className={`flex items-center gap-2 h-12 px-4 rounded-xl mt-1 ${unverified ? "bg-amber-50 border border-amber-200" : "bg-purple-50/50 border border-purple-100"}`}>
+                <div className={`w-2 h-2 rounded-full ${unverified ? "bg-amber-400" : "bg-secondary"}`} />
+                <span className={`font-bold text-body-md ${unverified ? "text-amber-700" : "text-secondary"}`}>
+                  {unverified ? `${accountName} (Unverified)` : accountName}
+                </span>
               </div>
             )}
           </div>
@@ -272,14 +277,16 @@ export default function WithdrawPage() {
               className="bg-surface-container-high rounded-xl p-4 border border-outline-variant/30 border-dashed space-y-2"
             >
               <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Withdrawal Fee</span>
-                <span className="font-bold text-primary">{formatCurrencyShort(fee)}</span>
+                <span className="text-on-surface-variant">Amount to receive</span>
+                <span className="font-bold text-secondary">{formatCurrencyShort(numAmount)}</span>
               </div>
-              <div className="pt-2 border-t border-outline-variant/30">
-                <p className="text-body-sm text-on-surface-variant leading-relaxed">
-                  <span className="font-bold text-secondary">{formatCurrencyShort(fee)}</span> withdrawal fee applies.
-                  You will receive <span className="font-bold text-primary">{formatCurrencyShort(numAmount)}</span>.
-                </p>
+              <div className="flex justify-between text-sm">
+                <span className="text-on-surface-variant">Service fee</span>
+                <span className="font-medium text-on-surface-variant">- {formatCurrencyShort(fee)}</span>
+              </div>
+              <div className="pt-2 border-t border-outline-variant/30 flex justify-between text-sm font-bold">
+                <span className="text-on-surface">Total deducted from wallet</span>
+                <span className="text-primary">{formatCurrencyShort(totalDeduction)}</span>
               </div>
               {balance < totalDeduction && (
                 <p className="text-xs text-error mt-1">Insufficient balance</p>

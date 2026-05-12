@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { createClient } from "@supabase/supabase-js"
+import { formatCurrencyShort } from "@/lib/utils"
 
 const SQUAD_BASE_URL = process.env.SQUAD_BASE_URL || "https://api-d.squadco.com"
 const SQUAD_SECRET_KEY = process.env.SQUAD_SECRET_KEY || ""
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
     let transferSuccess = false
     let squadRef = ""
     let transferStatus = "pending"
+    let squadMessage = ""
 
     if (SQUAD_SECRET_KEY) {
       try {
@@ -88,23 +90,13 @@ export async function POST(req: Request) {
           squadRef = squadData.data?.transaction_ref || reference
           transferStatus = "success"
         } else {
-          // Refund wallet on Squad failure
-          await supabaseAdmin
-            .from("wallets")
-            .update({ balance: Number(wallet.balance) })
-            .eq("user_id", authUser.id)
-
-          return NextResponse.json({
-            status: "error",
-            message: squadData.message || "Transfer failed. Please try again.",
-          })
+          squadMessage = squadData.message || "Transfer failed"
+          transferStatus = "pending"
         }
       } catch (err) {
         console.error("Squad transfer error:", err)
-        return NextResponse.json({
-          status: "error",
-          message: "Transfer service unavailable. Please try again later.",
-        })
+        squadMessage = "Transfer service unavailable"
+        transferStatus = "pending"
       }
     }
 
@@ -122,6 +114,7 @@ export async function POST(req: Request) {
         accountName,
         reference,
         squadRef: squadRef || undefined,
+        squadMessage: squadMessage || undefined,
       },
       api_reference: reference,
     })
@@ -137,8 +130,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       status: "success",
       message: transferSuccess
-        ? "Withdrawal successful! Funds sent to your bank."
-        : "Withdrawal request submitted for manual processing.",
+        ? `Withdrawal successful! ${formatCurrencyShort(numAmount)} sent to ${bankName}.`
+        : "Withdrawal submitted! Your funds will be processed manually and sent to your bank within 24 hours.",
       newBalance: Number(wallet.balance) - totalDeduction,
     })
   } catch {

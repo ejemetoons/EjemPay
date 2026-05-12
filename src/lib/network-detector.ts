@@ -56,10 +56,10 @@ const networkColors: Record<string, string> = {
 }
 
 const networkLogos: Record<string, string> = {
-  mtn: "M",
-  airtel: "A",
-  glo: "G",
-  "9mobile": "9",
+  mtn: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/MTN_Logo.svg/240px-MTN_Logo.svg.png",
+  airtel: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Airtel_logo.svg/240px-Airtel_logo.svg.png",
+  glo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Globacom_Logo.svg/240px-Globacom_Logo.svg.png",
+  "9mobile": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/9mobile_logo.svg/240px-9mobile_logo.svg.png",
 }
 
 const sortedPrefixes = Object.keys(networkPrefixes).sort((a, b) => b.length - a.length)
@@ -88,6 +88,6 @@ export function getNetworkColor(network: string | null): string {
 }
 
 export function getNetworkLogo(network: string | null): string {
-  if (!network) return "?"
-  return networkLogos[network] || "?"
+  if (!network) return ""
+  return networkLogos[network] || ""
 }

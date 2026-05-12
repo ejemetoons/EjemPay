@@ -37,12 +37,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4 transition-colors duration-300">
       <button
         onClick={toggle}
-        className="fixed top-4 right-4 p-2 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 z-50"
+        className="fixed top-4 right-4 p-2 rounded-xl bg-surface-container border border-outline-variant/50 z-50"
       >
-        {theme === "dark" ? <Sun className="w-5 h-5 dark:text-gray-200" /> : <Moon className="w-5 h-5" />}
+        {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
 
       <motion.div
@@ -51,30 +51,31 @@ export default function ForgotPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">Ejempay</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Reset your password</p>
+          <h1 className="text-3xl font-bold text-primary">Ejempay</h1>
+          <p className="text-on-surface-variant mt-2">Reset your password</p>
         </div>
 
         <Card glass>
           {sent ? (
             <div className="text-center py-4">
-              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-green-600 dark:text-green-400" />
-              </div>
-              <p className="text-gray-900 dark:text-gray-100 font-medium">Check your email</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                We've sent a password reset link to {email}
+              <p className="text-on-surface font-medium">Check your email</p>
+              <p className="text-sm text-on-surface-variant mt-2">
+                We've sent a password reset link to <span className="font-medium text-on-surface">{email}</span>
               </p>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-5">
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="bg-error-container text-error text-sm p-3 rounded-xl"
+                >
                   {error}
-                </div>
+                </motion.div>
               )}
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-on-surface-variant">
                 Enter your email address and we'll send you a link to reset your password.
               </p>
 
@@ -88,18 +89,18 @@ export default function ForgotPasswordPage() {
                 required
               />
 
-              <Button type="submit" className="w-full" size="lg" isLoading={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Link"}
-              </Button>
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Button type="submit" className="w-full" size="lg" isLoading={loading}>
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Link"}
+                </Button>
+              </motion.div>
+
+              <Link href="/login" className="flex items-center justify-center gap-2 text-sm text-primary hover:underline">
+                <ArrowLeft className="w-4 h-4" />
+                Back to login
+              </Link>
             </form>
           )}
-
-          <div className="mt-6 text-center">
-            <Link href="/login" className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              <ArrowLeft className="w-4 h-4" />
-              Back to login
-            </Link>
-          </div>
         </Card>
       </motion.div>
     </div>

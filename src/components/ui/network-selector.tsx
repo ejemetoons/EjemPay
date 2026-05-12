@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { NETWORKS, getNetworkName, getNetworkColor, getNetworkLogo } from "@/lib/network-detector"
 import { cn } from "@/lib/utils"
 
@@ -37,10 +38,14 @@ export function NetworkSelector({ selected, onSelect, autoDetected }: NetworkSel
               )}
             >
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm text-white shadow-sm"
+                className="w-10 h-10 rounded-lg flex items-center justify-center p-1.5 shadow-sm"
                 style={{ backgroundColor: color }}
               >
-                {logo}
+                {logo ? (
+                  <Image src={logo} alt={name} width={28} height={28} className="object-contain" />
+                ) : (
+                  <span className="text-sm font-bold text-white">{name[0]}</span>
+                )}
               </div>
               <span className={cn(
                 "text-[10px] uppercase font-bold tracking-wide",
